@@ -1,0 +1,11 @@
+        <div>
+            <h1>Ask about Your Schedule</h1>
+            <input 
+                type="text" 
+                value={query} 
+                onChange={(e) => setQuery(e.target.value)} 
+                placeholder="Ask anything related to your schedule..." 
+            />
+            <button onClick={handleQuery}>Ask ChatGPT</button>
+            <pre>{response}</pre>
+        </div>
