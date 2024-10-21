@@ -1060,7 +1060,7 @@ const handleChange2 = (e) => {
                                                         <div className='flex items-center'>
                                                         <input
                                                           type="checkbox"
-                                                          className={`size-5 flex-shrink-0`}
+                                                          className={` size-4 lg:size-5 shrink-0`}
                                                           checked={data3.status == "Finished" ? true : checkedarray.includes(data3.name)}
                                                           onChange={(e) => {
                                                             if (e.target.checked) {
@@ -1072,7 +1072,7 @@ const handleChange2 = (e) => {
                                                             }
                                                           }}
                                                           disabled={data3.status == "Finished"}
-                                                        />                                                          <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
+                                                        />                                                          <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
                                                         </div>                                        
                                                       </div>
                                                       <div>
