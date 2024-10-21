@@ -14,7 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 export const Usercontext = createContext("");
 
 function App() {
-  const [login, setlogin] = useState(false);
+  const [login, setlogin] = useState(localStorage.getItem("loggedusername") ? true : false);
   const [loggedusername, setloggedusername] = useState(localStorage.getItem("loggedusername") || null); // Get from localStorage if exists
   const [usernamerole, setusernamerole] = useState();
   const [refreshtoken, setrefreshtoken] = useState("");
@@ -41,6 +41,7 @@ function App() {
     }
   }, [document.cookie]);
 
+  
   return (
     <>
       <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole }}>

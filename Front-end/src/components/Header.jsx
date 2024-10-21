@@ -42,7 +42,7 @@ export const Header = ()=>{
                     <div className={`rounded-lg p-2 hover:border-b-[3px] hover:cursor-pointer text-gray-200 lg:block hidden ${active === "about" ? "border-b-[3px] border-gray-200 border-opacity-60" : ""}`}onClick={()=> {navigate("/");handleToggle("about")}} >About</div>
                     <div className={`rounded-lg p-2 hover:border-b-[3px] lg:block hidden hover:cursor-pointer text-gray-200 ${active === "rank" ? "border-b-[3px] border-gray-200 border-opacity-60" : ""}`}onClick={()=> {navigate("/");handleToggle("rank")}}>Music</div>
                     {
-                        login == true ? (
+                        login ? (
                             <>
                                 <div className='flex gap-4'>
                                     <div className='relative'>
