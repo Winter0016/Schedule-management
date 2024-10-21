@@ -47,42 +47,42 @@ app.get('/greeting',(req,res) =>{
 })
 
 
-// const ROLE_LIST ={
-//     "Admin": 5150,
-//     "Editor":1984,
-//     "User": 2001
-// }
+const ROLE_LIST ={
+    "Admin": 5150,
+    "Editor":1984,
+    "User": 2001
+}
 // const allow = [ROLE_LIST.User,ROLE_LIST.Admin];
 // console.log(allow)
 
 
-// const verifyJwt = async(req,res,next) =>{
-//     const authHeader = req.headers.authorization || req.headers.Authorization;
-//     if(!authHeader?.startsWith("Bearer ")) return res.status(401).json({"Error":"Couldn't find your JWT!"});
-//     console.log("autheaders :",authHeader);
-//     const token = authHeader.split(" ")[1];
-//     jwt.verify(
-//         token,
-//         process.env.ACCESS_TOKEN_SECRET,
-//         (err,decoded) => {
-//             if(err) return (res.status(403).res.json({"message":"The token is not matched!"}));
-//             req.user = decoded.Userinfo.username;
-//             req.roles = decoded.Userinfo.roles;
-//         }
-//     )
-// }
-// const verifyrole = (...allowedrole) => {
-//     return (req,res,next) =>{
-//         if(!req?.roles) return res.status(401).json({"message":"You don't have any permission."})
-//         const allowedrolearray = [...allowedrole];
-//         // const temp = req.roles.map(role => allowedrolearray.includes(role))
-//         // console.log(temp);
-//         const result = req.roles.map(role => allowedrolearray.includes(role)).find(val => val ===true);
-//         // console.log(`result of role`,result);
-//         if(!result) return res.status(401).json({"message":"You don't have permission for this action"})
-//         next();
-//     }
-// }
+const verifyJwt = async(req,res,next) =>{
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if(!authHeader?.startsWith("Bearer ")) return res.status(401).json({"Error":"Couldn't find your JWT!"});
+    console.log("autheaders :",authHeader);
+    const token = authHeader.split(" ")[1];
+    jwt.verify(
+        token,
+        process.env.ACCESS_TOKEN_SECRET,
+        (err,decoded) => {
+            if(err) return (res.status(403).res.json({"message":"The token is not matched!"}));
+            req.user = decoded.Userinfo.username;
+            req.roles = decoded.Userinfo.roles;
+        }
+    )
+}
+const verifyrole = (...allowedrole) => {
+    return (req,res,next) =>{
+        if(!req?.roles) return res.status(401).json({"message":"You don't have any permission."})
+        const allowedrolearray = [...allowedrole];
+        // const temp = req.roles.map(role => allowedrolearray.includes(role))
+        // console.log(temp);
+        const result = req.roles.map(role => allowedrolearray.includes(role)).find(val => val ===true);
+        // console.log(`result of role`,result);
+        if(!result) return res.status(401).json({"message":"You don't have permission for this action"})
+        next();
+    }
+}
 
 
 
@@ -499,46 +499,46 @@ app.post("/add-daily", async (req, res) => {
   });
   
 
-// app.get("/employees" , verifyJwt, verifyrole(ROLE_LIST.User,ROLE_LIST.Editor,ROLE_LIST.Admin) ,async (req,res) =>{
-//     const employees = await Employee.find();
-//     if(!employees) return res.status(204).json({"message" : "No employees found"});
-//     res.json(employees);
-// })
+app.get("/employees" , verifyJwt, verifyrole(ROLE_LIST.User,ROLE_LIST.Editor,ROLE_LIST.Admin) ,async (req,res) =>{
+    const employees = await Employee.find();
+    if(!employees) return res.status(204).json({"message" : "No employees found"});
+    res.json(employees);
+})
 
-// app.post("/employees",verifyJwt, verifyrole(ROLE_LIST.Editor,ROLE_LIST.Admin),async (req,res) =>{
-//     const {firstname,lastname} = req.body;
-//     if(!firstname || !lastname) return res.status(401).json("firstname and lastname are required!");
-//     try{
-//         const result = await Employee.create({
-//             firstname: firstname,
-//             lastname: lastname,
-//         })
-//         await result.save();
-//         res.json(result);
-//     }catch(err){
-//         console.log(err);
-//         res.status(401).json("Error while creating new employee")
-//     }
-// })
-// app.put("/employees",verifyJwt,verifyrole(ROLE_LIST.Editor,ROLE_LIST.Admin),async (req,res) =>{
-//     const {id,newfirstname,newlastname} = req.body;
-//     if(!id || !newfirstname || !newlastname) return res.status(401).json({"message":"id,newfirstname,newlastname are required!"});
-//     const findemployee = await Employee.findOne({_id:id}).exec();
-//     if(!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
-//     findemployee.firstname = newfirstname;
-//     findemployee.lastname = newlastname;
-//     await findemployee.save();
-//     res.json(findemployee);
-// })
+app.post("/employees",verifyJwt, verifyrole(ROLE_LIST.Editor,ROLE_LIST.Admin),async (req,res) =>{
+    const {firstname,lastname} = req.body;
+    if(!firstname || !lastname) return res.status(401).json("firstname and lastname are required!");
+    try{
+        const result = await Employee.create({
+            firstname: firstname,
+            lastname: lastname,
+        })
+        await result.save();
+        res.json(result);
+    }catch(err){
+        console.log(err);
+        res.status(401).json("Error while creating new employee")
+    }
+})
+app.put("/employees",verifyJwt,verifyrole(ROLE_LIST.Editor,ROLE_LIST.Admin),async (req,res) =>{
+    const {id,newfirstname,newlastname} = req.body;
+    if(!id || !newfirstname || !newlastname) return res.status(401).json({"message":"id,newfirstname,newlastname are required!"});
+    const findemployee = await Employee.findOne({_id:id}).exec();
+    if(!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
+    findemployee.firstname = newfirstname;
+    findemployee.lastname = newlastname;
+    await findemployee.save();
+    res.json(findemployee);
+})
 
-// app.delete("/employees",verifyJwt,verifyrole(ROLE_LIST.Admin),async (req,res) =>{
-//     const {id} = req.body;
-//     if(!id) return res.status(401).json({"Message":"id is required!"});
-//     const findemployee = await Employee.findOne({_id: id}).exec();
-//     if(!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
-//     await Employee.deleteOne({_id:id});
-//     res.json({"Message":`Deleted Employee ${findemployee.firstname}`});
-// })
+app.delete("/employees",verifyJwt,verifyrole(ROLE_LIST.Admin),async (req,res) =>{
+    const {id} = req.body;
+    if(!id) return res.status(401).json({"Message":"id is required!"});
+    const findemployee = await Employee.findOne({_id: id}).exec();
+    if(!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
+    await Employee.deleteOne({_id:id});
+    res.json({"Message":`Deleted Employee ${findemployee.firstname}`});
+})
 
 app.post("/auth/checkrefreshtoken",async(req,res) =>{
     const {refreshtoken} = req.body;
@@ -592,28 +592,28 @@ app.post("/auth/login",async (req,res) => {
         res.json("Wrong password!");
     }
 })
-// app.get("/auth/logout", async (req, res) => {
-//     const cookies = req.cookies;
-//     if (!cookies?.jwt) {
-//         res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
-//         return res.json({ "message": "There is no cookie, but we cleared any existing cookie just in case." });
-//     }
+app.get("/auth/logout", async (req, res) => {
+    const cookies = req.cookies;
+    if (!cookies?.jwt) {
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
+        return res.json({ "message": "There is no cookie, but we cleared any existing cookie just in case." });
+    }
 
-//     const refreshTokencheck = cookies.jwt;
-//     const Founduser = await User.findOne({ refreshToken: refreshTokencheck }).exec();
+    const refreshTokencheck = cookies.jwt;
+    const Founduser = await User.findOne({ refreshToken: refreshTokencheck }).exec();
 
-//     if (!Founduser) {
-//         res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
-//         return res.json({ "message": "There is no user logged in, but we still cleared the cookie!" });
-//     }
-//     console.log(`Found 1 user currently logged in : ${Founduser.username}`);
-//     Founduser.refreshToken = " ";
-//     const result = await Founduser.save();
-//     console.log(result);
+    if (!Founduser) {
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
+        return res.json({ "message": "There is no user logged in, but we still cleared the cookie!" });
+    }
+    console.log(`Found 1 user currently logged in : ${Founduser.username}`);
+    Founduser.refreshToken = " ";
+    const result = await Founduser.save();
+    console.log(result);
 
-//     res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
-//     return res.status(200).json({ "message": `User ${Founduser.username} has logged out` });
-// });
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
+    return res.status(200).json({ "message": `User ${Founduser.username} has logged out` });
+});
 
 
 app.post('/login', (req, res) => {
@@ -648,12 +648,12 @@ const verifyToken = (req, res, next) => {
 };
 
 // Protected route handler
-// const protectedRoute = (req, res) => {
-//     res.json({ message: `Hello ${req.user.username}, you have access to this route and your age is ${req.user.age}` });
-// };
+const protectedRoute = (req, res) => {
+    res.json({ message: `Hello ${req.user.username}, you have access to this route and your age is ${req.user.age}` });
+};
 
-// // Apply middleware to the protected route
-// app.get('/protected', verifyToken, protectedRoute);
+// Apply middleware to the protected route
+app.get('/protected', verifyToken, protectedRoute);
 
 // Start the server
 

@@ -459,10 +459,10 @@ const handleChange2 = (e) => {
   const [checkedarray,setcheckedarray] = useState([]);
   const [updatingcheckedarray,setupdatingcheckedarray] = useState(false);
 
-  if(checkedarray){
-    console.log(checkedarray);
-    console.log(checkedarray.length);
-  }
+  // if(checkedarray){
+  //   console.log(checkedarray);
+  //   console.log(checkedarray.length);
+  // }
 
   // rollover2
 
