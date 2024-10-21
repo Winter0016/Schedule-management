@@ -1115,7 +1115,7 @@ const handleChange2 = (e) => {
         </div>
         <>
           <img src={images.sidebar} className={`size-[3.5rem] absolute left-4 top-4 cursor-pointer z-40 transition-all duration-700 ${open === false ? "block" : "hidden"}`} alt="" onClick={()=>setopen(true)} />   
-          <div className={`z-30 absolute left-0 top-0 h-screen font-roboto text-gray-300 bg-customdark transition-all duration-700 ease-in-out border-r-[1px] border-gray-700 ${open ? 'w-[12rem] opacity-100' : 'w-[4rem] opacity-0 -z-30'}`}>
+          <div className={`z-30 absolute left-0 top-0 h-screen font-roboto text-gray-300 bg-customdark transition-all duration-700 ease-in-out border-r-[1px] border-gray-700 ${open ? 'w-[12rem] opacity-100' : 'w-[4rem] opacity-0 -z-50'}`}>
               <img src={images.closesidebar} className='size-[2rem] absolute top-5 right-5 bg-gray-400 cursor-pointer rounded-lg' onClick={()=>setopen(false)} alt="" />
               <div className='border-b-[1px] border-gray-700 pb-10 pt-14 flex flex-col w-full gap-1 items-center'>
                   <img src={images.profile} className='size-[5rem]' alt="" />
