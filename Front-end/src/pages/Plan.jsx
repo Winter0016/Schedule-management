@@ -308,7 +308,6 @@ const handleChange2 = (e) => {
   const [activeid,setactiveid] = useState();
   const [important,setimportant] = useState(false);
 
-  const [todaytask,settodaytask] = useState([]);
 
   const addactivity = async (e) => {
     e.preventDefault();
@@ -411,16 +410,15 @@ const handleChange2 = (e) => {
     }
   }
 
-  const tasks = [];
-
-
-  const updateTodayTask = async () => {
+  
+  const updateTodayTask = async (todaytask,changetodaytask) => {
     try {
         const response = await axios.post('http://localhost:3000/update-todaytask', {
             username: loggedusername,
             plan: selectedOption,
             date: `${years}-${months}-${date}`,
-            task: tasks
+            task: todaytask,
+            changetodaytask:changetodaytask,
         });
 
         // console.log(response.data);
@@ -431,10 +429,16 @@ const handleChange2 = (e) => {
 
   useEffect(() => {
     if (plan && selectedOption) {
+      const tasks = [];
+      let changetodaytask = false;
       plan.forEach((data2) => {
         if (data2.name === selectedOption) {
           data2.daily.forEach((activity) => {
             if(activity.day === days){
+              if(reversetranslateDay(addtask) === days){
+                console.log(`change today schedule`);
+                changetodaytask = true;
+              }
               activity.activities.forEach((active) => {
                 tasks.push({
                   name: active.name,
@@ -451,10 +455,9 @@ const handleChange2 = (e) => {
           });
         }
       });
-      settodaytask(tasks);
-      updateTodayTask();
+      updateTodayTask(tasks,changetodaytask)
     }
-  }, [plan,selectedOption]);
+  }, [plan,selectedOption,addacresult]);
 
   const [checkedarray,setcheckedarray] = useState([]);
   const [updatingcheckedarray,setupdatingcheckedarray] = useState(false);
@@ -486,175 +489,6 @@ const handleChange2 = (e) => {
       getplan();
     }
   }
-// const userData =
-//   {
-//     "name": "Building Schedule Management",
-//     "progress": null,
-//     "time": null,
-//     "_id": "670b67837de1916ef2013a1d",
-//     "finished_task": [],
-//     "incomming_task": [],
-//     "daily": [
-//         {
-//             "day": 7,
-//             "activities": [
-//                 {
-//                     "name": "Relax my mind,reduce my stress",
-//                     "description": "Try to keep it cool\n",
-//                     "color": "#3399ff",
-//                     "textcolor": "#e5e7eb",
-//                     "timestart": ":",
-//                     "timeend": ":",
-//                     "_id": "670b6bb87de1916ef2013aba"
-//                 },
-//                 {
-//                     "name": "Homework ( if there is)",
-//                     "description": "",
-//                     "color": "#ffd500",
-//                     "textcolor": "#01040e",
-//                     "timestart": ":",
-//                     "timeend": ":",
-//                     "_id": "670d26168592d39834f82f43"
-//                 }
-//             ],
-//             "_id": "670b6bb87de1916ef2013ab9"
-//         },
-//         {
-//             "day": 3,
-//             "activities": [
-//                 {
-//                     "name": "Trí tuệ nhân tạo và Máy học",
-//                     "description": "",
-//                     "color": "#adfeff",
-//                     "textcolor": "#264d00",
-//                     "timestart": "08:15",
-//                     "timeend": "10:45",
-//                     "_id": "670bc16947212fd09d65439f"
-//                 }
-//             ],
-//             "_id": "670bc16947212fd09d65439e"
-//         },
-//         {
-//             "day": 4,
-//             "activities": [
-//                 {
-//                     "name": "Thiết kế trải nghiệm người dùng",
-//                     "description": "",
-//                     "color": "#ee00ff",
-//                     "textcolor": "#2f0335",
-//                     "timestart": "08:15",
-//                     "timeend": "10:45",
-//                     "_id": "670bc65a47212fd09d6545b3"
-//                 }
-//             ],
-//             "_id": "670bc65a47212fd09d6545b2"
-//         },
-//         {
-//             "day": 5,
-//             "activities": [],
-//             "_id": "670c8c6ea0da650289dc5bd0"
-//         },
-//         {
-//             "day": 2,
-//             "activities": [
-//                 {
-//                     "name": "Swimming",
-//                     "description": "",
-//                     "color": "#0400ff",
-//                     "textcolor": "#071340",
-//                     "timestart": "16:00",
-//                     "timeend": "17:00",
-//                     "_id": "670c8c9ba0da650289dc5bf8"
-//                 }
-//             ],
-//             "_id": "670c8c9ba0da650289dc5bf7"
-//         },
-//         {
-//             "day": 1,
-//             "activities": [
-//                 {
-//                     "name": "Code my project",
-//                     "description": "",
-//                     "color": "#ff0000",
-//                     "textcolor": "#ffffff",
-//                     "timestart": "06:00",
-//                     "timeend": "12:00",
-//                     "_id": "670d25208592d39834f82e25"
-//                 },
-//                 {
-//                     "name": "Rest",
-//                     "description": "",
-//                     "color": "#8785ff",
-//                     "textcolor": "#d5d6dd",
-//                     "timestart": "13:00",
-//                     "timeend": "15:00",
-//                     "_id": "670d25d48592d39834f82ed8"
-//                 },
-//                 {
-//                     "name": "Swimming",
-//                     "description": "",
-//                     "color": "#0400ff",
-//                     "textcolor": "#071340",
-//                     "timestart": "16:00",
-//                     "timeend": "17:00",
-//                     "_id": "670d23828592d39834f82cfc"
-//                 },
-//                 {
-//                     "name": "Learn or Do Homework",
-//                     "description": "",
-//                     "color": "#fbff00",
-//                     "textcolor": "#000000",
-//                     "timestart": "18:00",
-//                     "timeend": "22:00",
-//                     "_id": "670d25918592d39834f82e9a"
-//                 }
-//             ],
-//             "_id": "670d23828592d39834f82cfb"
-//         },
-//         {
-//             "day": 6,
-//             "activities": [
-//                 {
-//                     "name": "Code my project",
-//                     "description": "",
-//                     "color": "#ff0000",
-//                     "textcolor": "#ffffff",
-//                     "timestart": "06:00",
-//                     "timeend": "12:00",
-//                     "_id": "670d24f58592d39834f82ded"
-//                 },
-//                 {
-//                     "name": "Gamming Time",
-//                     "description": "Game with friend(If they're available) or alone",
-//                     "color": "#00ff91",
-//                     "textcolor": "#000000",
-//                     "timestart": "12:00",
-//                     "timeend": "03:00",
-//                     "_id": "670d24618592d39834f82db8"
-//                 },
-//                 {
-//                     "name": "Swimming",
-//                     "description": "",
-//                     "color": "#0400ff",
-//                     "textcolor": "#071340",
-//                     "timestart": "16:00",
-//                     "timeend": "17:00",
-//                     "_id": "670d238a8592d39834f82d26"
-//                 },
-//                 {
-//                     "name": "Rehearse lessons",
-//                     "description": "",
-//                     "color": "#04ff00",
-//                     "textcolor": "#000000",
-//                     "timestart": "18:00",
-//                     "timeend": "21:00",
-//                     "_id": "670d23f38592d39834f82d55"
-//                 }
-//             ],
-//             "_id": "670d238a8592d39834f82d25"
-//         }
-//     ]
-//   }
   return (
     <div className='w-screen h-screen overflow-auto bg-customgray relative'>
       {
@@ -1072,7 +906,8 @@ const handleChange2 = (e) => {
                                                             }
                                                           }}
                                                           disabled={data3.status == "Finished"}
-                                                        />                                                          <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
+                                                        />                                                       
+                                                        <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
                                                         </div>                                        
                                                       </div>
                                                       <div>

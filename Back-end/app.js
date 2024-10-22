@@ -315,7 +315,7 @@ app.post("/plan", async (req, res) => {
 });
 
 app.post("/update-todaytask", async (req, res) => {
-    const { username, plan, date, task } = req.body;
+    const { username, plan, date, task,changetodaytask } = req.body;
 
     try {
         // Check if the user exists
@@ -332,7 +332,7 @@ app.post("/update-todaytask", async (req, res) => {
         
         // Check if any entry in todaytask exists
         if (userPlanData.todaytask.length > 0) {
-            if(userPlanData.todaytask[0].currentdate !== date){
+            if(userPlanData.todaytask[0].currentdate !== date || changetodaytask == true){
                 userPlanData.todaytask[0] = { currentdate: date, task: task };
             }
         } else {
