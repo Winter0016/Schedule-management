@@ -172,7 +172,7 @@ export const Login = () => {
                                                         value={emailreset}
                                                         onChange={(e) => setemailreset(e.target.value)} // Update password state
                                                     />
-                                                    <div className='flex gap-3 border-2'>
+                                                    <div className='flex gap-3'>
                                                         <button className='text-gray-300 py-2 px-7 rounded-full bg-black' onClick={()=>{setforgetpwd(false)}}>
                                                             Back
                                                         </button>

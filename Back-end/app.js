@@ -160,7 +160,7 @@ const sendVerificationEmail = async (email, verificationLink) => {
         service: 'gmail', // or any other email provider
         auth: {
             user: 'chauquangphuc2604.2604@gmail.com',
-            pass: 'supn kemu njyb mudz',
+            pass: process.env.NODEMALPASS,
         },
     });
 
@@ -200,21 +200,20 @@ app.get('/verify-email', async (req, res) => {
 });
 
 app.post("/reset-password",async(req,res) =>{
-    console.log("running reset password")
+    // console.log("running reset password")
     const {email} = req.body;
     const user = await User.findOne({email}).exec();
     if(!user){
         return res.json("No user has this email.")
-        console.log("invalid user")
     }else{
-        console.log("found user")
+        // console.log("found user")
         const verificationToken = jwt.sign({ userId: user._id }, process.env.VERIFY_KEY, { expiresIn: '1d' });
         const verificationLink = `http://localhost:3001/reset-password?token=${verificationToken}`
         const transporter = nodemailer.createTransport({
             service: 'gmail', // or any other email provider
             auth: {
                 user: 'chauquangphuc2604.2604@gmail.com',
-                pass: 'supn kemu njyb mudz',
+                pass:  process.env.NODEMALPASS,
             },
         });
     
@@ -231,7 +230,7 @@ app.post("/reset-password",async(req,res) =>{
 })
 app.post("/verify-token",async(req,res) =>{
     const {token} = req.body;
-    console.log("checking token !")
+    // console.log("checking token !")
     try{
         const decoded = jwt.verify(token, process.env.VERIFY_KEY);
         const userId = decoded.userId;
@@ -240,7 +239,7 @@ app.post("/verify-token",async(req,res) =>{
             return res.json({message:"Token is Invalid!"});
         }
         await user.save();
-        console.log("Token is valid")
+        // console.log("Token is valid")
         return res.json({message:"Token is valid", username:user.username});
     }catch(error){
         console.log(error);
@@ -553,14 +552,13 @@ app.post("/auth/checkrefreshtoken",async(req,res) =>{
 })
 
 app.post("/auth/login",async (req,res) => {
-    console.log(`logging in`)
+    // console.log(`logging in`)
     const {username,pwd} = req.body;
     if(!username || !pwd) return res.status(400).json("Email and Password are required")
     const Founduser = await User.findOne({username: username}).exec();
     if(!Founduser) return res.status(401).json("No user Found")
     const match = await bcrypt.compare(pwd,Founduser.password)
     if(match){
-        console.log("found user : ",Founduser)
         const role = Founduser.role;
         // const USERNAME = Founduser.username;
         // const accessToken = jwt.sign(
@@ -573,6 +571,7 @@ app.post("/auth/login",async (req,res) => {
         //     process.env.ACCESS_TOKEN_SECRET, //5ca2cd
         //     {expiresIn:"60s"},
         // );
+        // console.log(`role : ${role}`);
         const refreshToken = jwt.sign(
             {
                 "Userinfo":{
@@ -585,7 +584,7 @@ app.post("/auth/login",async (req,res) => {
         )
         Founduser.refreshToken = refreshToken;
         const result = await Founduser.save();
-        console.log(result);
+        // console.log(result);
         res.cookie("jwt",refreshToken,{httpOnly:false,Samesite:"Strict",maxAge:7*24 * 60 *60 *1000,secure:false}) 
         res.json("Login successfully");
     }else{

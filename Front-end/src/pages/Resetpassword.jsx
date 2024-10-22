@@ -85,13 +85,13 @@ export const Resetpassword = () =>{
                 result === "Token is valid" ? (
                     <>
                         <div style={backgroundStyle}>
-                            <div className='max-w-lg mx-auto pt-[8rem] border-2 border-red-500 mb-[2rem]'>
+                            <div className='max-w-lg mx-auto pt-[8rem] mb-[2rem]'>
                                 <div
                                     style={{ boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
                                     className="bg-gray-800 rounded-lg shadow-xl overflow-hidden"
                                 >
                                     <div className="p-8">
-                                        <h2 className="text-center text-3xl font-extrabold text-white">Change Password</h2>
+                                        <h2 className="text-center text-3xl font-extrabold text-white">Change Password for {user}</h2>
                                         <form method="POST" className="mt-8 space-y-6" onSubmit={Changepassword}>
                                             <div className="rounded-md shadow-sm">
                                                 <div className='relative'>
