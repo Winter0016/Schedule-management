@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route,Navigate } from "react-router-dom";
 import { createContext, useState, useEffect } from "react";
 
 import { Header } from "./components/Header";
@@ -108,6 +108,7 @@ function App() {
 
             {/* Protected Route for /plan */}
             <Route path="/dashboard" element={<Sidebar></Sidebar>}>
+              <Route index element={<Navigate to="/dashboard/404" />} /> {/* Redirect to 404 if just /dashboard */}
               <Route path="plan" element={
                 <ProtectedRoute loggedusername={loggedusername}>
                   <Plan />
