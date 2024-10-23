@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route,Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { createContext, useState, useEffect } from "react";
 
 import { Header } from "./components/Header";
@@ -10,6 +10,7 @@ import { Plan } from "./pages/Plan";
 import { NotFound } from "./pages/404";
 import { Loginsignup } from "./components/Login&signup";
 import { Testing } from "./pages/testing";
+import { Sidebar } from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export const Usercontext = createContext("");
@@ -26,8 +27,8 @@ function App() {
   const [addacresult,setaddacresult] = useState();
   const [deleteresult,setdeleteresult] = useState("");
   const [createresult,setcreateresult] = useState("");
-  
   const[loadingplan,setloadingplan] = useState(false);
+  const [openproperty,setopenproperty] = useState("Plan");
 
 
 
@@ -93,11 +94,10 @@ function App() {
     }
   
   },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult])
-
   
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,setplan,deleteac,setdeleteac,addacresult,setaddacresult,deleteresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan }}>
+      <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,setplan,deleteac,setdeleteac,addacresult,setaddacresult,deleteresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,openproperty,setopenproperty }}>
         <BrowserRouter>
           <Header />
           <Routes>
@@ -107,8 +107,7 @@ function App() {
             <Route path="/reset-password" element={<Resetpassword />} />
 
             {/* Protected Route for /plan */}
-            <Route path="/dashboard" element={null}>
-              <Route index element={<Navigate to="/dashboard/404" />} /> {/* Redirect to 404 if just /dashboard */}
+            <Route path="/dashboard" element={<Sidebar></Sidebar>}>
               <Route path="plan" element={
                 <ProtectedRoute loggedusername={loggedusername}>
                   <Plan />
