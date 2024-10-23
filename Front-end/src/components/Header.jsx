@@ -57,7 +57,7 @@ export const Header = ()=>{
                                                 } overflow-hidden`} 
                                             >
                                                 <ul className=''>
-                                                    <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer' onClick={()=>{navigate("/plan");setActive("");setIsOpen(false)}}>Plan</div>
+                                                    <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer' onClick={()=>{navigate("/dashboard/plan");setActive("");setIsOpen(false)}}>Plan</div>
                                                     <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer'>Profile</div>
                                                     {/* <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer'>Shop</div> */}
                                                 </ul>
