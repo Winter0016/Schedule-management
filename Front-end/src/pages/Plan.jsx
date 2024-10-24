@@ -387,8 +387,9 @@ const handleChange2 = (e) => {
         if (data2.name === selectedOption) {
           data2.daily.forEach((activity) => {
             if(activity.day === days){
+              // console.log(activity.day,"and",days)
               if(reversetranslateDay(addtask) === days){
-                console.log(`change today schedule`);
+                // console.log(`change today schedule`);
                 changetodaytask = true;
               }
               activity.activities.forEach((active) => {
@@ -446,7 +447,7 @@ const handleChange2 = (e) => {
       {
         addtask && (
           <>
-            <div className='absolute w-full h-full bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center'>
+            <div className='absolute w-full h-full bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
               <div className=' w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark overflow-auto relative'>
                 <img src={images.closecross} className=' size-12 absolute top-4 right-5 cursor-pointer' onClick={()=>{setaddtask("");setmodify(false);setaddacresult("");setdailyid("");setactiveid("");setmodifyacname("");setdeleteac("")}} alt="" />
                 <div className='text-center break-words text-customblue text-2xl'>{addtask}'s Schedule</div>
