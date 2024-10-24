@@ -12,6 +12,8 @@ import { Loginsignup } from "./components/Login&signup";
 import { Testing } from "./pages/testing";
 import { Sidebar } from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Schedule } from "./pages/Schedule";
+import { Mytask } from "./pages/Mytask";
 
 export const Usercontext = createContext("");
 
@@ -28,9 +30,30 @@ function App() {
   const [deleteresult,setdeleteresult] = useState("");
   const [createresult,setcreateresult] = useState("");
   const[loadingplan,setloadingplan] = useState(false);
-  const [openproperty,setopenproperty] = useState("Plan");
+  const [selectedOption, setSelectedOption] = useState('');
+  const [addtask, setaddtask] = useState("");
+  const today = new Date();
 
+  const date = today.getDate();
+  let days = today.getDay(); // Get the current day number (0 = Sunday, 1 = Monday, etc.)
+  if(days ==0){
+    days = 7
+  }
+  const months = today.getMonth();
+  const years = today.getFullYear();
 
+  function reversetranslateDay(daystring) {
+    switch (daystring) {
+        case "Monday": return 1;
+        case "Tuesday": return 2;
+        case "Wednesday": return 3;
+        case "Thursday": return 4;
+        case "Friday": return 5;
+        case "Saturday": return 6;
+        case "Sunday": return 7;
+        default: return "Invalid day string"; // In case the input is not between 1 and 7
+    }
+}
 
   const sortactivity = (activityarray) => {
     return activityarray.sort((a, b) => parseInt(a.timestart.split(":")[0]) - parseInt(b.timestart.split(":")[0]));
@@ -97,7 +120,7 @@ function App() {
   
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,setplan,deleteac,setdeleteac,addacresult,setaddacresult,deleteresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,openproperty,setopenproperty }}>
+      <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addtask,setaddtask,reversetranslateDay }}>
         <BrowserRouter>
           <Header />
           <Routes>
@@ -117,6 +140,16 @@ function App() {
               <Route path="testing" element={
                 <ProtectedRoute loggedusername={loggedusername}>
                   <Testing />
+                </ProtectedRoute>
+              } />
+              <Route path="schedule" element={
+                <ProtectedRoute loggedusername={loggedusername}>
+                  <Schedule />
+                </ProtectedRoute>
+              } />
+              <Route path="mytask" element={
+                <ProtectedRoute loggedusername={loggedusername}>
+                  <Mytask />
                 </ProtectedRoute>
               } />
               <Route path="404" element={<NotFound />} /> {/* 404 route */}

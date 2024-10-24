@@ -42,7 +42,7 @@ export const Login = () => {
             setlogin(true);
             setrefreshtoken(document.cookie.substring("jwt".length + 1));
             await checkrefreshtoken(document.cookie.substring("jwt".length + 1));
-            navigate("/plan");
+            navigate("/dashboard/plan");
         } catch (error) {
             console.error('Error:', error);
             setlogin(false);

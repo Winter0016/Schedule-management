@@ -7,9 +7,8 @@ import axios from 'axios';
 
 export const Sidebar = () =>{
 
-    const {loggedusername,usernamerole,open,setopen,setopenproperty} = useContext(Usercontext)
-
-
+    const {loggedusername,usernamerole,open,setopen} = useContext(Usercontext)
+    const navigate = useNavigate();
     return (
       <>
         <img src={images.sidebar} className={`size-[3.5rem] absolute left-4 top-4 cursor-pointer z-40 transition-all duration-700 ${open === false ? "block" : "hidden"}`} alt="" onClick={()=>setopen(true)} />   
@@ -22,9 +21,9 @@ export const Sidebar = () =>{
               <div className='text-red-600 w-full text-center'>{usernamerole}</div>
           </div>
           <div className='mt-7 flex flex-col gap-7'>
-              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=> setopenproperty("Plan")}>Plan</div>
-              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=> setopenproperty("Schedule")}>Daily Schedule</div>
-              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=>setopenproperty("mytask")}>My Task</div>
+              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=> navigate("plan")}>Plan</div>
+              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=> navigate("schedule")}>Daily Schedule</div>
+              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=>navigate("mytask")}>My Task</div>
               <div className='cursor-pointer hover:bg-gray-700 p-3'>Finished Task</div>
               <div className='cursor-pointer hover:bg-gray-700 p-3'>Music List</div>
           </div>
