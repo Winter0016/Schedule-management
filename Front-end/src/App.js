@@ -90,7 +90,7 @@ function App() {
   }, [document.cookie]);
 
   const updateTodayTask = async () => {
-    console.log(`updating`)
+    // console.log(`updating`)
     try {
       let tasks = [];
       let changetodaytask
@@ -135,7 +135,7 @@ function App() {
   };
 
   const getplan = async(req,res) =>{
-    console.log(`getplan`)
+    // console.log(`getplan`)
     try{
         setloadingplan(true)
         const response = await fetch("http://localhost:3000/plan",{
@@ -159,6 +159,7 @@ function App() {
   }
   useEffect(()=>{
     if(loggedusername){
+      getplan();
       updateTodayTask();
     }  
   },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult])
