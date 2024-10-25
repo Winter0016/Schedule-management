@@ -91,20 +91,19 @@ function App() {
 
   const [updatetoday,setupdatetoday] = useState("")
   const updateTodayTask = async () => {
-    console.log(`updating`)
     let currentChangetodaytask = false; // Use a local variable
     let taskarray = []; // Initialize taskarray here
 
     try {
         // Fetch the latest plan data first
         if (plan && selectedOption) {
-            console.log(`plan and selected option`)
+            // console.log(`plan and selected option`)
             plan.forEach((data2) => {
                 if (data2.name === selectedOption) {
                     data2.daily.forEach((activity) => {
                         if (activity.day === days) {
                             if (reversetranslateDay(addtask) == days) {
-                                console.log(`changetodaytask due to addtask`)
+                                // console.log(`changetodaytask due to addtask`)
                                 currentChangetodaytask = true; // Update the local variable
                             }
                             activity.activities.forEach((active) => {
@@ -143,7 +142,6 @@ function App() {
 };
 
   const getplan = async(req,res) =>{
-    console.log(`getplan`)
     try{
         setloadingplan(true)
         const response = await fetch("http://localhost:3000/plan",{
@@ -166,10 +164,7 @@ function App() {
     }
   }
   useEffect(()=>{
-    if(loggedusername || addacresult || deleteac || deleteresult || createresult || updatetoday){
-      if(addacresult || deleteac){
-        console.log(`hey`)
-      }
+    if(loggedusername || addacresult !=="" || deleteac !=="" || deleteresult !=="" || createresult !=="" || updatetoday !==""){
       getplan();
     }  
   },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult,updatetoday])
