@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, act } from 'react';
+import React, { useState, useContext } from 'react';
 import { Usercontext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import images from '../images'; // Assuming 'images.island' is a valid image path

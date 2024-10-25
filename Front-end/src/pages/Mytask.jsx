@@ -1,61 +1,12 @@
 
-import React, { useState, useContext, useEffect, act } from 'react';
+import React, { useState, useContext} from 'react';
 import { Usercontext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import images from '../images'; // Assuming 'images.island' is a valid image path
 import axios from 'axios';
 
 export const Mytask = () =>{
-    const { loggedusername, plan,selectedOption,reversetranslateDay,addtask,getplan,monthName,setSelectedOption, addacresult, date, years, months, days, open } = useContext(Usercontext);
-    const updateTodayTask = async (todaytask,changetodaytask) => {
-        try {
-            const response = await axios.post('http://localhost:3000/update-todaytask', {
-                username: loggedusername,
-                plan: selectedOption,
-                date: `${years}-${months}-${date}`,
-                task: todaytask,
-                changetodaytask:changetodaytask,
-            });
-    
-            // console.log(response.data);
-        } catch (error) {
-            console.error('Error updating today task:', error.response ? error.response.data : error.message);
-        }
-      };
-    
-      useEffect(() => {
-        if (plan && selectedOption) {
-          const tasks = [];
-          let changetodaytask = false;
-          plan.forEach((data2) => {
-            if (data2.name === selectedOption) {
-              data2.daily.forEach((activity) => {
-                if(activity.day === days){
-                  // console.log(activity.day,"and",days)
-                  if(reversetranslateDay(addtask) === days){
-                    // console.log(`change today schedule`);
-                    changetodaytask = true;
-                  }
-                  activity.activities.forEach((active) => {
-                    tasks.push({
-                      name: active.name,
-                      description: active.description,
-                      timestart: active.timestart,
-                      timeend: active.timeend,
-                      color: active.color,
-                      textcolor: active.textcolor,
-                      important: active.important,
-                      // Add any other properties you want to include
-                    });
-                  });
-                }
-              });
-            }
-          });
-          updateTodayTask(tasks,changetodaytask)
-        }
-      }, [plan,selectedOption,addacresult]);
-    
+    const { loggedusername, plan,selectedOption,reversetranslateDay,addtask,deleteac,getplan,monthName,setSelectedOption, addacresult, date, years, months, days, open } = useContext(Usercontext);    
       const [checkedarray,setcheckedarray] = useState([]);
       const [updatingcheckedarray,setupdatingcheckedarray] = useState(false);
     

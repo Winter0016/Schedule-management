@@ -14,6 +14,8 @@ import { Sidebar } from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Schedule } from "./pages/Schedule";
 import { Mytask } from "./pages/Mytask";
+import axios from 'axios';
+
 
 export const Usercontext = createContext("");
 
@@ -31,7 +33,7 @@ function App() {
   const [createresult,setcreateresult] = useState("");
   const[loadingplan,setloadingplan] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
-  const [addtask, setaddtask] = useState("");
+  const [addtask, setaddtask] = useState(""); 
   const today = new Date();
 
   const date = today.getDate();
@@ -87,8 +89,53 @@ function App() {
     }
   }, [document.cookie]);
 
+  const updateTodayTask = async () => {
+    console.log(`updating`)
+    try {
+      let tasks = [];
+      let changetodaytask
+      if (plan && selectedOption) {
+        console.log(`plan and selected option`)
+        plan.forEach((data2) => {
+          if (data2.name === selectedOption) {
+            data2.daily.forEach((activity) => {
+              if(activity.day === days){
+                if(reversetranslateDay(addtask) == days){
+                  console.log(`changetodaytask due to addtask`)
+                  changetodaytask = true;
+                }
+                activity.activities.forEach((active) => {
+                  tasks.push({
+                    name: active.name,
+                    description: active.description,
+                    timestart: active.timestart,
+                    timeend: active.timeend,
+                    color: active.color,
+                    textcolor: active.textcolor,
+                    important: active.important,
+                  });
+                });
+              }
+            });
+          }
+        });
+        const response = await axios.post('http://localhost:3000/update-todaytask', {
+          username: loggedusername,
+          plan: selectedOption,
+          date: `${years}-${months}-${date}`,
+          task: tasks,
+          changetodaytask:changetodaytask ? true:false,
+        });
+      }
+      getplan();
+        // console.log(response.data);
+    } catch (error) {
+        console.error('Error updating today task:', error.response ? error.response.data : error.message);
+    }
+  };
+
   const getplan = async(req,res) =>{
-    // console.log(`getplan`)
+    console.log(`getplan`)
     try{
         setloadingplan(true)
         const response = await fetch("http://localhost:3000/plan",{
@@ -112,10 +159,8 @@ function App() {
   }
   useEffect(()=>{
     if(loggedusername){
-        // console.log("hello")
-        getplan();
-    }
-  
+      updateTodayTask();
+    }  
   },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult])
   
   return (

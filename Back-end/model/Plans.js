@@ -101,6 +101,10 @@ const todaytask = new Schema({
       status:{
         type: String,
         default: null,
+      },
+      dateupdated:{
+        type:String,
+        default:null,
       }
     }
   ]
