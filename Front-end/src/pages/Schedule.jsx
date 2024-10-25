@@ -170,14 +170,14 @@ export const Schedule = () => {
         }
     };
 
-    const clearacresult = () => {
-        setaddacresult("");
-        setdeleteac("");
-    }
+    // const clearacresult = () => {
+    //     setaddacresult("");
+    //     setdeleteac("");
+    // }
 
-    if (addacresult || deleteac) {
-        const mytimeout = setTimeout(clearacresult, 2000);
-    }
+    // if (addacresult || deleteac) {
+    //     const mytimeout = setTimeout(clearacresult, 2000);
+    // }
 
     const deleteactivity = async () => {
         try {

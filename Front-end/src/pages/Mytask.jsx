@@ -6,7 +6,7 @@ import images from '../images'; // Assuming 'images.island' is a valid image pat
 import axios from 'axios';
 
 export const Mytask = () =>{
-    const { loggedusername, plan,selectedOption,reversetranslateDay,addtask,deleteac,getplan,monthName,setSelectedOption, addacresult, date, years, months, days, open } = useContext(Usercontext);    
+    const { loggedusername, plan,selectedOption,getplan,monthName,setSelectedOption, date, years, days, open } = useContext(Usercontext);    
       const [checkedarray,setcheckedarray] = useState([]);
       const [updatingcheckedarray,setupdatingcheckedarray] = useState(false);
     

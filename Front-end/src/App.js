@@ -89,53 +89,61 @@ function App() {
     }
   }, [document.cookie]);
 
+  const [updatetoday,setupdatetoday] = useState("")
   const updateTodayTask = async () => {
-    // console.log(`updating`)
+    console.log(`updating`)
+    let currentChangetodaytask = false; // Use a local variable
+    let taskarray = []; // Initialize taskarray here
+
     try {
-      let tasks = [];
-      let changetodaytask
-      if (plan && selectedOption) {
-        console.log(`plan and selected option`)
-        plan.forEach((data2) => {
-          if (data2.name === selectedOption) {
-            data2.daily.forEach((activity) => {
-              if(activity.day === days){
-                if(reversetranslateDay(addtask) == days){
-                  console.log(`changetodaytask due to addtask`)
-                  changetodaytask = true;
+        // Fetch the latest plan data first
+        if (plan && selectedOption) {
+            console.log(`plan and selected option`)
+            plan.forEach((data2) => {
+                if (data2.name === selectedOption) {
+                    data2.daily.forEach((activity) => {
+                        if (activity.day === days) {
+                            if (reversetranslateDay(addtask) == days) {
+                                console.log(`changetodaytask due to addtask`)
+                                currentChangetodaytask = true; // Update the local variable
+                            }
+                            activity.activities.forEach((active) => {
+                                taskarray.push({
+                                    name: active.name,
+                                    description: active.description,
+                                    timestart: active.timestart,
+                                    timeend: active.timeend,
+                                    color: active.color,
+                                    textcolor: active.textcolor,
+                                    important: active.important,
+                                });
+                            });
+                        }
+                    });
                 }
-                activity.activities.forEach((active) => {
-                  tasks.push({
-                    name: active.name,
-                    description: active.description,
-                    timestart: active.timestart,
-                    timeend: active.timeend,
-                    color: active.color,
-                    textcolor: active.textcolor,
-                    important: active.important,
-                  });
-                });
-              }
             });
-          }
-        });
-        const response = await axios.post('http://localhost:3000/update-todaytask', {
-          username: loggedusername,
-          plan: selectedOption,
-          date: `${years}-${months}-${date}`,
-          task: tasks,
-          changetodaytask:changetodaytask ? true:false,
-        });
-      }
-      getplan();
+
+            const response = await axios.post('http://localhost:3000/update-todaytask', {
+                username: loggedusername,
+                plan: selectedOption,
+                date: `${years}-${months}-${date}`,
+                task: taskarray,
+                changetodaytask: currentChangetodaytask // Use the local variable here
+            });
+            setupdatetoday(response.data)
+        }
+        // Reset taskarray and currentChangetodaytask to default values
+        taskarray = []; // Reset taskarray
+        currentChangetodaytask = false; // Reset currentChangetodaytask
+
         // console.log(response.data);
     } catch (error) {
         console.error('Error updating today task:', error.response ? error.response.data : error.message);
     }
-  };
+};
 
   const getplan = async(req,res) =>{
-    // console.log(`getplan`)
+    console.log(`getplan`)
     try{
         setloadingplan(true)
         const response = await fetch("http://localhost:3000/plan",{
@@ -158,12 +166,19 @@ function App() {
     }
   }
   useEffect(()=>{
-    if(loggedusername){
+    if(loggedusername || addacresult || deleteac || deleteresult || createresult || updatetoday){
+      if(addacresult || deleteac){
+        console.log(`hey`)
+      }
       getplan();
-      updateTodayTask();
     }  
-  },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult])
-  
+  },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult,updatetoday])
+
+  useEffect(()=>{
+    if(loadingplan == false){
+      updateTodayTask();
+    }
+  },[loadingplan])
   return (
     <>
       <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addtask,setaddtask,reversetranslateDay }}>

@@ -331,12 +331,12 @@ app.post("/update-todaytask", async (req, res) => {
         
         // Check if any entry in todaytask exists
         if (userPlanData.todaytask.length > 0) {
-            console.log(userPlanData.todaytask[0].currentdate);
-            console.log(date)
+            // console.log(userPlanData.todaytask[0].currentdate);
+            // console.log(date)
             console.log(changetodaytask)
             if(userPlanData.todaytask[0].currentdate !== date || changetodaytask == true){
                 console.log(`updating`)
-                console.log(task)
+                console.log(`task :${JSON.stringify(task)}`)
                 userPlanData.todaytask[0] = { currentdate: date, task: task };
             }
         } else {
