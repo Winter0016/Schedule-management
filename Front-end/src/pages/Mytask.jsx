@@ -86,49 +86,49 @@ export const Mytask = () =>{
                             plan && selectedOption && (
                             <>
                                 {
-                                plan.map((data) =>(
-                                    <React.Fragment key={data._id}>
-                                    {data.name == selectedOption &&(
-                                        <>
-                                        {data.todaytask.map((data2) => (
-                                          <React.Fragment key={data2._id}>
-                                            {
-                                                data2.task.map((data3) =>(
-                                                <React.Fragment key={data3._id}>
-                                                    <div className='grid grid-cols-2'>
-                                                    <div className='border-r-[1px]'>
-                                                        <div className='flex items-center'>
-                                                        <input
-                                                        type="checkbox"
-                                                        className={` size-4 lg:size-5 shrink-0`}
-                                                        checked={data3.status == "Finished" ? true : checkedarray.includes(data3.name)}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                            // Add the id to the array if checked
-                                                            setcheckedarray((prev) => [...prev, data3.name]);
-                                                            } else {
-                                                            // Remove the id from the array if unchecked
-                                                            setcheckedarray((prev) => prev.filter(name => name !== data3.name));
-                                                            }
-                                                        }}
-                                                        disabled={data3.status == "Finished"}
-                                                        />                                                       
-                                                        <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
-                                                        </div>                                        
-                                                    </div>
-                                                    <div>
-                                                        <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className='text-center m-2 p-1 rounded-xl'>{data3.description ? data3.description : "No description"}</div>
-                                                    </div>
-                                                    </div>
-                                                </React.Fragment>
-                                                ))
-                                            }
-                                            </React.Fragment>
-                                        ))}
-                                        </>
-                                    )}
-                                    </React.Fragment>
-                                ))
+                                    plan.map((data) =>(
+                                        <React.Fragment key={data._id}>
+                                        {data.name == selectedOption &&(
+                                            <>
+                                                {data.todaytask.map((data2) => (
+                                                    <React.Fragment key={data2._id}>
+                                                    {
+                                                        data2.task.map((data3) =>(
+                                                        <React.Fragment key={data3._id}>
+                                                            <div className='grid grid-cols-2'>
+                                                            <div className='border-r-[1px]'>
+                                                                <div className='flex items-center'>
+                                                                <input
+                                                                type="checkbox"
+                                                                className={` size-4 lg:size-5 shrink-0`}
+                                                                checked={data3.status == "Finished" ? true : checkedarray.includes(data3.name)}
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) {
+                                                                    // Add the id to the array if checked
+                                                                    setcheckedarray((prev) => [...prev, data3.name]);
+                                                                    } else {
+                                                                    // Remove the id from the array if unchecked
+                                                                    setcheckedarray((prev) => prev.filter(name => name !== data3.name));
+                                                                    }
+                                                                }}
+                                                                disabled={data3.status == "Finished"}
+                                                                />                                                       
+                                                                <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
+                                                                </div>                                        
+                                                            </div>
+                                                            <div>
+                                                                <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className='text-center m-2 p-1 rounded-xl'>{data3.description ? data3.description : "No description"}</div>
+                                                            </div>
+                                                            </div>
+                                                        </React.Fragment>
+                                                        ))
+                                                    }
+                                                    </React.Fragment>
+                                                ))}
+                                            </>
+                                        )}
+                                        </React.Fragment>
+                                    ))
                                 }
                             </>
                             )

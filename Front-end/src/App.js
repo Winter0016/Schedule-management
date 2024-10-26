@@ -130,6 +130,7 @@ function App() {
                 changetodaytask: currentChangetodaytask // Use the local variable here
             });
             setupdatetoday(response.data)
+            // console.log(response.data);
         }
         // Reset taskarray and currentChangetodaytask to default values
         taskarray = []; // Reset taskarray
@@ -165,12 +166,15 @@ function App() {
   }
   useEffect(()=>{
     if(loggedusername || addacresult !=="" || deleteac !=="" || deleteresult !=="" || createresult !=="" || updatetoday !==""){
+      // console.log(`running getplan`)
       getplan();
     }  
-  },[loggedusername,usernamerole,addacresult,deleteac,deleteresult,createresult,updatetoday])
+  },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption])
 
   useEffect(()=>{
+    // console.log(`loadingplan is changing`)
     if(loadingplan == false){
+      // console.log(`running updatetodaytask`)
       updateTodayTask();
     }
   },[loadingplan])
