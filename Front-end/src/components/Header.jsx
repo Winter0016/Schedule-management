@@ -72,7 +72,7 @@ export const Header = ()=>{
                                 <div className="relative w-[13rem] bg-gray-800 rounded-lg flex items-center">
                                     {/* Sliding background */}
                                     <div
-                                    className={`absolute top-0 left-0 w-1/2 h-full bg-blue-500 rounded-lg transition duration-500 ease-in-out 
+                                    className={`absolute top-0 left-0 w-1/2 h-full ${(active === "login" || active === "signup") ? "bg-blue-500" :""} rounded-lg transition duration-500 ease-in-out 
                                     ${active === 'signup' ? 'translate-x-full' :(active === 'main' || active === 'rank' || active === 'about') ? " hidden" :'translate-x-0'}`}
                                     ></div>
 

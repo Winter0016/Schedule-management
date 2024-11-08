@@ -549,14 +549,16 @@ app.delete("/employees",verifyJwt,verifyrole(ROLE_LIST.Admin),async (req,res) =>
 
 app.post("/auth/checkrefreshtoken",async(req,res) =>{
     const {refreshtoken} = req.body;
-    jwt.verify(
-        refreshtoken,
-        process.env.REFRESH_TOKEN_SECRET,
-        (err,decoded) => {
-            if(err) return (res.status(403).res.json({"message":"The token is not matched!"}));
-            res.json({"user":decoded.Userinfo.username,"role":decoded.Userinfo.role})
-        }
-    )
+    if(refreshtoken){
+        jwt.verify(
+            refreshtoken,
+            process.env.REFRESH_TOKEN_SECRET,
+            (err,decoded) => {
+                if(err) return (res.status(403).res.json({"message":"The token is not matched!"}));
+                res.json({"user":decoded.Userinfo.username,"role":decoded.Userinfo.role})
+            }
+        )
+    }
 })
 
 app.post("/auth/login",async (req,res) => {

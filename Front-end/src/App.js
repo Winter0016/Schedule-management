@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route,Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { createContext, useState, useEffect } from "react";
 
 import { Header } from "./components/Header";
@@ -14,16 +14,15 @@ import { Sidebar } from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Schedule } from "./pages/Schedule";
 import { Mytask } from "./pages/Mytask";
+import { Loading } from "./components/Loadingpage";
 import axios from 'axios';
-
 
 export const Usercontext = createContext("");
 
 function App() {
-  const [login, setlogin] = useState(localStorage.getItem("loggedusername") ? true : false);
-  const [loggedusername, setloggedusername] = useState(localStorage.getItem("loggedusername") || null); // Get from localStorage if exists
+  const [loggedusername, setloggedusername] = useState(); 
+  const [login, setlogin] = useState(loggedusername ? true : false);
   const [usernamerole, setusernamerole] = useState();
-  const [refreshtoken, setrefreshtoken] = useState("");
   const [active, setActive] = useState('');
   const [open,setopen] = useState(false);
   const [plan,setplan] = useState();
@@ -35,6 +34,7 @@ function App() {
   const [selectedOption, setSelectedOption] = useState('');
   const [addtask, setaddtask] = useState(""); 
   const today = new Date();
+  const [isLoading, setIsLoading] = useState(true); // Loading state
 
   const date = today.getDate();
   let days = today.getDay(); // Get the current day number (0 = Sunday, 1 = Monday, etc.)
@@ -69,22 +69,44 @@ function App() {
   };
 
   const checkrefreshtoken = async (myrefreshtoken) => {
-    const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
-      method: "POST",
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshtoken: myrefreshtoken })
-    });
-    const data = await response.json();
-    
-    setloggedusername(data.user);
-    setusernamerole(data.role);
-    localStorage.setItem("loggedusername", data.user);  // Save logged user to localStorage
+    try {
+      const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshtoken: myrefreshtoken })
+      });
+      const data = await response.json();
+      
+      setloggedusername(data.user);
+      setusernamerole(data.role);
+    }catch(error){
+      console.log(error)
+    }finally{
+      setIsLoading(false); // Set isLoading to false when done
+    }
   };
 
   useEffect(() => {
     if (document.cookie) {
+       
+      //in canse document cookie store more than one :
+
+      // example cookie data : const sampleCookieString = "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw0; key=some_value; another_cookie=test";
+
+      // const cookieParts = document.cookie.split('; ');
+      // for (const part of cookieParts) {
+      //   const [key, value] = part.split('=');
+      //   if (key === 'jwt') {
+      //     console.log(`jwt = ${value}`);
+      //   }
+      //   if (key === 'key') {
+      //     console.log(`key = ${value}`);
+      //   }
+      // }
+
+      ///////
+      // console.log(document.cookie.substring("jwt".length + 1));
       setlogin(true);
-      setrefreshtoken(document.cookie.substring("jwt".length + 1));
       checkrefreshtoken(document.cookie.substring("jwt".length + 1));
     }
   }, [document.cookie]);
@@ -153,11 +175,13 @@ function App() {
         const data = await response.json()
         // console.log(`${JSON.stringify(data)}`);
         // console.log(data[1].name)
-        const updatedplan = data.plans.map((key) => ({
-          ...key,
-          daily: finddaily(key.daily)
-        }));
-        setplan(updatedplan);
+        if(data){
+          const updatedplan = data.plans.map((key) => ({
+            ...key,
+            daily: finddaily(key.daily)
+          }));
+          setplan(updatedplan);
+        }
         setloadingplan(false);
     }catch(error){
         setloadingplan(false);
@@ -166,7 +190,7 @@ function App() {
   }
   useEffect(()=>{
     if(loggedusername || addacresult !=="" || deleteac !=="" || deleteresult !=="" || createresult !=="" || updatetoday !==""){
-      // console.log(`running getplan`)
+      console.log(`running getplan`)
       getplan();
     }  
   },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption])
@@ -180,55 +204,57 @@ function App() {
   },[loadingplan])
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, refreshtoken, setrefreshtoken, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addtask,setaddtask,reversetranslateDay }}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addtask,setaddtask,reversetranslateDay }}>
         <BrowserRouter>
           <Header />
-          <Routes>
-            <Route path="/" element={<Mainpage />} />
-            {/* <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} /> */}
-            <Route path="/reset-password" element={<Resetpassword />} />
+          {isLoading ? (
+            <Loading /> // Show Loading while isLoading is true
+          ) : (
+            <Routes>
+              <Route path="/" element={<Mainpage />} />
+              <Route path="/reset-password" element={<Resetpassword />} />
 
-            {/* Protected Route for /plan */}
-            <Route path="/dashboard" element={<Sidebar></Sidebar>}>
-              <Route index element={<Navigate to="/dashboard/404" />} /> {/* Redirect to 404 if just /dashboard */}
-              <Route path="plan" element={
-                <ProtectedRoute loggedusername={loggedusername}>
-                  <Plan />
-                </ProtectedRoute>
+              {/* Protected Route for /plan */}
+              <Route path="/dashboard" element={<Sidebar></Sidebar>}>
+                <Route index element={<Navigate to="/dashboard/404" />} /> {/* Redirect to 404 if just /dashboard */}
+                <Route path="plan" element={
+                  <ProtectedRoute loggedusername={loggedusername}>
+                    <Plan />
+                  </ProtectedRoute>
+                } />
+                <Route path="testing" element={
+                  <ProtectedRoute loggedusername={loggedusername}>
+                    <Testing />
+                  </ProtectedRoute>
+                } />
+                <Route path="schedule" element={
+                  <ProtectedRoute loggedusername={loggedusername}>
+                    <Schedule />
+                  </ProtectedRoute>
+                } />
+                <Route path="mytask" element={
+                  <ProtectedRoute loggedusername={loggedusername}>
+                    <Mytask />
+                  </ProtectedRoute>
+                } />
+                <Route path="404" element={<NotFound />} /> {/* 404 route */}
+              </Route>
+              <Route path="/login" element={
+                <Loginsignup loggedusername={loggedusername}>
+                  <Login />
+                </Loginsignup>
               } />
-              <Route path="testing" element={
-                <ProtectedRoute loggedusername={loggedusername}>
-                  <Testing />
-                </ProtectedRoute>
+              <Route path="/register" element={
+                <Loginsignup loggedusername={loggedusername}>
+                  <Register />
+                </Loginsignup>
               } />
-              <Route path="schedule" element={
-                <ProtectedRoute loggedusername={loggedusername}>
-                  <Schedule />
-                </ProtectedRoute>
-              } />
-              <Route path="mytask" element={
-                <ProtectedRoute loggedusername={loggedusername}>
-                  <Mytask />
-                </ProtectedRoute>
-              } />
-              <Route path="404" element={<NotFound />} /> {/* 404 route */}
-            </Route>
-            <Route path="/login" element={
-              <Loginsignup loggedusername={loggedusername}>
-                <Login />
-              </Loginsignup>
-            } />
-            <Route path="/register" element={
-              <Loginsignup loggedusername={loggedusername}>
-                <Register />
-              </Loginsignup>
-            } />
 
-            {/* 404 Route */}
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<NotFound />} /> {/* Catch-all for other invalid routes */}
-          </Routes>
+              {/* 404 Route */}
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} /> {/* Catch-all for other invalid routes */}
+            </Routes>
+          )}
         </BrowserRouter>
       </Usercontext.Provider>
     </>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import images from '../images';
 
 export const Login = () => {
-    const { setlogin, setrefreshtoken, setloggedusername,loggedusername } = useContext(Usercontext);
+    const { setlogin, setloggedusername,loggedusername,setusernamerole,usernamerole } = useContext(Usercontext);
     const [password, setPassword] = useState('');
     const [username,setUsername] = useState('');
     const {active, setActive} = useContext(Usercontext);
@@ -15,14 +15,21 @@ export const Login = () => {
     const [loginerror,setloginerror] = useState("");
 
     const checkrefreshtoken = async (myrefreshtoken) => {
+        console.log('running checkrefreshtoken')
         const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
-            method: "POST",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshtoken: myrefreshtoken })
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshtoken: myrefreshtoken })
         });
         const data = await response.json();
+        
         setloggedusername(data.user);
-    }
+        setusernamerole(data.role);
+        if(loggedusername){
+            navigate("dashboard/plan")
+        }
+        // localStorage.setItem("loggedusername", data.user);  // Save logged user to localStorage
+      };
 
     const loginfunction = async (e) => {
         e.preventDefault(); // Prevents the default form submission behavior
@@ -36,15 +43,14 @@ export const Login = () => {
             });
             const data = await response.json();
             console.log(data);
-            if(data == "Wrong password!"){
+            if(data == "Wrong password!" || data == "No user Found"){
                 throw new Error("Wrong password or username!");
             }
             setlogin(true);
-            setrefreshtoken(document.cookie.substring("jwt".length + 1));
+            setloginerror("");
             await checkrefreshtoken(document.cookie.substring("jwt".length + 1));
-            navigate("/dashboard/plan");
         } catch (error) {
-            console.error('Error:', error);
+            // console.error('Error:', error);
             setlogin(false);
             setloginerror(error.message);
         }
