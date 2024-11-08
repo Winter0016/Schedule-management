@@ -70,6 +70,7 @@ function App() {
 
   const checkrefreshtoken = async (myrefreshtoken) => {
     try {
+      console.log(`running checkrefreshtoken at app.js`);
       const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
@@ -77,17 +78,19 @@ function App() {
       });
       const data = await response.json();
       
-      setloggedusername(data.user);
-      setusernamerole(data.role);
+      if(data.user && data.role){
+        setlogin(true);
+        setloggedusername(data.user);
+        setusernamerole(data.role);
+      }
     }catch(error){
       console.log(error)
     }finally{
-      setIsLoading(false); // Set isLoading to false when done
+      setIsLoading(false)
     }
   };
 
   useEffect(() => {
-    if (document.cookie) {
        
       //in canse document cookie store more than one :
 
@@ -106,10 +109,12 @@ function App() {
 
       ///////
       // console.log(document.cookie.substring("jwt".length + 1));
-      setlogin(true);
-      checkrefreshtoken(document.cookie.substring("jwt".length + 1));
-    }
-  }, [document.cookie]);
+      if(!document.cookie){
+        setIsLoading(false)
+      }else{
+        checkrefreshtoken(document.cookie.substring("jwt".length + 1));
+      }
+  }, []);
 
   const [updatetoday,setupdatetoday] = useState("")
   const updateTodayTask = async () => {
@@ -190,7 +195,7 @@ function App() {
   }
   useEffect(()=>{
     if(loggedusername || addacresult !=="" || deleteac !=="" || deleteresult !=="" || createresult !=="" || updatetoday !==""){
-      console.log(`running getplan`)
+      // console.log(`running getplan`)
       getplan();
     }  
   },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption])
@@ -207,7 +212,7 @@ function App() {
       <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addtask,setaddtask,reversetranslateDay }}>
         <BrowserRouter>
           <Header />
-          {isLoading ? (
+          {isLoading == true ? (
             <Loading /> // Show Loading while isLoading is true
           ) : (
             <Routes>

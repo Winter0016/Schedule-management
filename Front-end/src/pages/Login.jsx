@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Usercontext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import images from '../images';
@@ -15,21 +15,26 @@ export const Login = () => {
     const [loginerror,setloginerror] = useState("");
 
     const checkrefreshtoken = async (myrefreshtoken) => {
-        console.log('running checkrefreshtoken')
-        const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
-          method: "POST",
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshtoken: myrefreshtoken })
-        });
-        const data = await response.json();
-        
-        setloggedusername(data.user);
-        setusernamerole(data.role);
-        if(loggedusername){
-            navigate("dashboard/plan")
+        try {
+          console.log(`running checkrefreshtoken`);
+          const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshtoken: myrefreshtoken })
+          });
+          const data = await response.json();
+          
+          if(data.user && data.role){
+            setlogin(true);
+            setloggedusername(data.user);
+            setusernamerole(data.role);
+            navigate("/dashboard/plan")
+          }
+        }catch(error){
+          console.log(error)
         }
-        // localStorage.setItem("loggedusername", data.user);  // Save logged user to localStorage
-      };
+    };
+
 
     const loginfunction = async (e) => {
         e.preventDefault(); // Prevents the default form submission behavior
@@ -46,7 +51,6 @@ export const Login = () => {
             if(data == "Wrong password!" || data == "No user Found"){
                 throw new Error("Wrong password or username!");
             }
-            setlogin(true);
             setloginerror("");
             await checkrefreshtoken(document.cookie.substring("jwt".length + 1));
         } catch (error) {
