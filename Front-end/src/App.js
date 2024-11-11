@@ -32,7 +32,8 @@ function App() {
   const [createresult,setcreateresult] = useState("");
   const[loadingplan,setloadingplan] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
-  const [addtask, setaddtask] = useState(""); 
+  const [addschedule, setaddschedule] = useState(""); 
+  const [addtask,setaddtask] = useState(false);
   const today = new Date();
   const [isLoading, setIsLoading] = useState(true); // Loading state
 
@@ -129,8 +130,8 @@ function App() {
                 if (data2.name === selectedOption) {
                     data2.daily.forEach((activity) => {
                         if (activity.day === days) {
-                            if (reversetranslateDay(addtask) == days) {
-                                // console.log(`changetodaytask due to addtask`)
+                            if (reversetranslateDay(addschedule) == days) {
+                                // console.log(`changetodaytask due to addschedule`)
                                 currentChangetodaytask = true; // Update the local variable
                             }
                             activity.activities.forEach((active) => {
@@ -209,7 +210,7 @@ function App() {
   },[loadingplan])
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addtask,setaddtask,reversetranslateDay }}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addschedule,setaddschedule,reversetranslateDay,setaddtask,addtask }}>
         <BrowserRouter>
           <Header />
           {isLoading == true ? (

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import images from '../images'; // Assuming 'images.island' is a valid image path
 
 export const Schedule = () => {
-    const { loggedusername, plan, deleteac, setdeleteac, addacresult, setaddacresult, date, years, months, days, open,addtask,setaddtask,reversetranslateDay,selectedOption,setSelectedOption } = useContext(Usercontext);
+    const { loggedusername, plan, deleteac, setdeleteac, addacresult, setaddacresult, date, years, months, days, open,addschedule,setaddschedule,reversetranslateDay,selectedOption,setSelectedOption } = useContext(Usercontext);
 
     function translateMonth() {
         switch (months) {
@@ -145,7 +145,7 @@ export const Schedule = () => {
                 body: JSON.stringify({
                     username: loggedusername,
                     planname: selectedOption,
-                    day: reversetranslateDay(addtask),
+                    day: reversetranslateDay(addschedule),
                     nameac: acname,
                     acdescription: descriptionac,
                     color: choosecolor,
@@ -226,12 +226,12 @@ export const Schedule = () => {
     }, [Months]);
     return (
         <div className='w-full h-screen overflow-auto bg-customgray relative'>
-          {addtask && (
+          {addschedule && (
             <>
                 <div className='absolute w-full h-full bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
                   <div className='w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark overflow-auto relative'>
-                    <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => { setaddtask(""); setmodify(false); setaddacresult(""); setdailyid(""); setactiveid(""); setmodifyacname(""); setdeleteac("") }} alt="" />
-                    <div className='text-center break-words text-customblue text-2xl'>{addtask}'s Schedule</div>
+                    <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => { setaddschedule(""); setmodify(false); setaddacresult(""); setdailyid(""); setactiveid(""); setmodifyacname(""); setdeleteac("") }} alt="" />
+                    <div className='text-center break-words text-customblue text-2xl'>{addschedule}'s Schedule</div>
                     <form onSubmit={addactivity}>
                       <div className={`text-base text-gray-400 mt-3`}>{modify ? "Current Title" : "Title"}</div>
                       <input required readOnly={modify ? true : false} type="text" className={`rounded-lg p-2 bg-customblue2 w-2/3 mt-3 text-gray-200`} value={acname} onChange={(e) => setacname(e.target.value)} />
@@ -354,7 +354,7 @@ export const Schedule = () => {
                             <button
                               className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
                               disabled={!selectedOption}
-                              onClick={() => setaddtask(translateDay(data.day))}
+                              onClick={() => setaddschedule(translateDay(data.day))}
                             >
                               Add Schedule
                             </button>
@@ -380,7 +380,7 @@ export const Schedule = () => {
                                                     }}
                                                     className={`${active.important ? "font-bold underline-offset-4 underline" : ""} p-1 rounded-xl w-fit h-fit cursor-pointer`}
                                                     onClick={() => {
-                                                      setaddtask(translateDay(data.day));
+                                                      setaddschedule(translateDay(data.day));
                                                       setacname(active.name);
                                                       setdescriptionac(active.description);
                                                       choosetextcolor(active.textcolor);
@@ -424,7 +424,7 @@ export const Schedule = () => {
                               <button
                                 className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
                                 disabled={!selectedOption}
-                                onClick={() => setaddtask(translateDay(data.day))}
+                                onClick={() => setaddschedule(translateDay(data.day))}
                               >
                                 Add Schedule
                               </button>
@@ -450,7 +450,7 @@ export const Schedule = () => {
                                                       }}
                                                       className={`${active.important ? "font-bold underline-offset-4 underline" : ""} p-1 rounded-xl w-fit h-fit cursor-pointer`}
                                                       onClick={() => {
-                                                          setaddtask(translateDay(data.day));
+                                                          setaddschedule(translateDay(data.day));
                                                           setacname(active.name);
                                                           setdescriptionac(active.description);
                                                           choosetextcolor(active.textcolor);
