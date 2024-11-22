@@ -370,6 +370,29 @@ export const Schedule = () => {
                                           <React.Fragment key={activity._id}> {/* Add key here */}
                                             {activity.day === days && (
                                               <>
+                                                {
+                                                  data2.my_task.map((task)=> (
+                                                    <React.Fragment key={task._id}>
+                                                      {
+                                                        (task.deadline.split("/")[1] === date.toString() && 
+                                                        task.deadline.split("/")[0] === (months + 1).toString()) && (
+                                                          <p
+                                                            title={`${task.description}`}
+                                                            style={{
+                                                              backgroundColor: `${task.color}`,
+                                                              color: `${task.textcolor}`,
+                                                            }}
+                                                            className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit`}
+                                                          >
+                                                            {task.name}
+                                                            {task.timestart !== ':' && task.timeend !== ':' &&
+                                                            `(${task.timestart}-${task.timeend})`}
+                                                          </p>
+                                                        )
+                                                      }
+                                                    </React.Fragment>
+                                                  ))
+                                                }
                                                 {activity.activities.map((active) => (
                                                   <p
                                                     key={active._id} // Keep your existing key here
@@ -415,11 +438,7 @@ export const Schedule = () => {
                           <div className='flex flex-col overflow-y-auto'>
                             <div className='flex flex-wrap gap-2 items-center mt-1'>
                               <div className='pl-3'>
-                                {data.day < days
-                                    ? Math.abs(date - Math.abs(data.day - days))
-                                    : Math.abs(date + Math.abs(data.day - days)) <= Endmonth
-                                        ? Math.abs(date + Math.abs(data.day - days))
-                                        : ''}
+                                {data.day < days ? Math.abs(date - Math.abs(data.day - days)): Math.abs(date + Math.abs(data.day - days)) <= Endmonth ? Math.abs(date + Math.abs(data.day - days)): ''}
                               </div>
                               <button
                                 className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
@@ -440,6 +459,30 @@ export const Schedule = () => {
                                             <React.Fragment key={activity._id}> {/* Add key here */}
                                               {activity.day === data.day && (
                                                 <>
+                                                  {
+                                                    data2.my_task.map((task)=> (
+                                                      <React.Fragment key={task._id}>
+                                                        {
+                                                          (task.deadline.split("/")[1] == (data.day < days ? Math.abs(date - Math.abs(data.day - days)).toString(): Math.abs(date + Math.abs(data.day - days)) <= Endmonth ? Math.abs(date + Math.abs(data.day - days)).toString(): '') && 
+                                                          task.deadline.split("/")[0] == (months + 1).toString()) && 
+                                                            (
+                                                              <p
+                                                                title={`${task.description}`}
+                                                                style={{
+                                                                  backgroundColor: `${task.color}`,
+                                                                  color: `${task.textcolor}`,
+                                                                }}
+                                                                className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit`}
+                                                              >
+                                                                {task.name}
+                                                                {task.timestart !== ':' && task.timeend !== ':' &&
+                                                                `(${task.timestart}-${task.timeend})`}
+                                                              </p>
+                                                            )
+                                                        }
+                                                    </React.Fragment>
+                                                  ))
+                                                }
                                                   {activity.activities.map((active) => (
                                                     <p
                                                       key={active._id} // Keep your existing key here

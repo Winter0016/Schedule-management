@@ -34,6 +34,8 @@ function App() {
   const [selectedOption, setSelectedOption] = useState('');
   const [addschedule, setaddschedule] = useState(""); 
   const [addtask,setaddtask] = useState(false);
+  const [updatetaskresult,setupdatetaskresult] = useState("")
+
   const today = new Date();
   const [isLoading, setIsLoading] = useState(true); // Loading state
 
@@ -195,11 +197,11 @@ function App() {
     }
   }
   useEffect(()=>{
-    if(loggedusername || addacresult !=="" || deleteac !=="" || deleteresult !=="" || createresult !=="" || updatetoday !==""){
-      // console.log(`running getplan`)
+    if(loggedusername){
+      console.log(`running getplan`)
       getplan();
     }  
-  },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption])
+  },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption,updatetaskresult])
 
   useEffect(()=>{
     // console.log(`loadingplan is changing`)
@@ -210,7 +212,7 @@ function App() {
   },[loadingplan])
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addschedule,setaddschedule,reversetranslateDay,setaddtask,addtask }}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addschedule,setaddschedule,reversetranslateDay,setaddtask,addtask,updatetaskresult,setupdatetaskresult }}>
         <BrowserRouter>
           <Header />
           {isLoading == true ? (

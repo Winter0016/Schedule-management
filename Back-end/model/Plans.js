@@ -16,13 +16,37 @@ const FinishedtaskSchema = new Schema({
 // Define the Incommingtask schema
 const IncommingtaskSchema = new Schema({
   name: {
-    type: String,
-    default: null,
+    type: String, // Name of the activity
+    required: true,
   },
-  date: {
-    type: String,
-    default: null,
+  description: {
+    type: String, // Description of the activity
+    default: '',
   },
+  color:{
+    type:String,
+    default:"",
+  },
+  textcolor:{
+    type: String,
+    default:"",
+  },
+  timestart:{
+    type:String,
+    default:"",
+  },
+  timeend:{
+    type: String,
+    default: "",
+  },
+  deadline:{
+    type:String,
+    default:""
+  },
+  status:{
+    type:String,
+    default:null
+  }
 });
 
 // Define the Daily schema
@@ -125,7 +149,7 @@ const PlanSchema = new Schema({
     default: null,
   },
   finished_task: [FinishedtaskSchema], // Array of Finished tasks
-  incomming_task: [IncommingtaskSchema], // Array of Incoming tasks
+  my_task: [IncommingtaskSchema], // Array of Incoming tasks
   daily: [DailySchema], // Array of Daily activities
   timebegin:{
     type: String,

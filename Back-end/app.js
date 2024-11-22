@@ -312,6 +312,71 @@ app.post("/plan", async (req, res) => {
         res.json(error.message); // Send an error response only if needed
     }
 });
+app.post("/update-task", async (req, res) => {
+    const { username, planname, nameac, acdescription, color, textcolor, modifyacname, timestart, timeend, deadline } = req.body;
+    try {
+        const findUser = await UserPlan.findOne({ username: username }).exec();
+
+        if (!findUser) {
+            return res.status(404).json("User not found");
+        }
+
+        const findplan = findUser.plans.find(plan => plan.name === planname);
+
+        if (!findplan) {
+            return res.status(404).json("Plan not found");
+        }
+
+        const existtask = findplan.my_task.find(task => task.name === nameac);
+
+        if (modifyacname) {
+            if (!existtask) {
+                return res.status(404).json("Task not found for modification");
+            }
+            existtask.description = acdescription;
+            existtask.color = color;
+            existtask.textcolor = textcolor;
+            existtask.timestart = timestart;
+            existtask.timeend = timeend;
+            existtask.deadline = deadline;
+            existtask.name = modifyacname;
+            await findUser.save(); // Ensure to save after updating the task
+            return res.status(200).json("Updated task successfully!");
+        }
+
+        if (existtask) {
+            return res.status(400).json("The task already exists!");
+        }
+
+        findplan.my_task.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, deadline: deadline });
+        await findUser.save();
+        return res.status(200).json("Added task successfully!");
+    } catch (error) {
+        console.log(error);
+        res.status(500).json("Error at update-task");
+    }
+})
+
+app.post("/delete-task", async (req, res) => {
+    const { username, planname, mytaskid } = req.body;
+
+    try {
+        const updatedUserPlan = await UserPlan.findOneAndUpdate(
+            { username: username, "plans.name": planname }, // Find the user, plan, and specific daily entry
+            { $pull: { "plans.$.my_task": { _id: mytaskid } } }, // Remove the activity with the matching _id
+            { new: true }  // Return the updated document
+        );
+
+        if (!updatedUserPlan) {
+            return res.status(404).json("Activity not found");
+        }
+
+        res.json("Deleted activity successfully");
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Error deleting activity");
+    }
+});
 
 app.post("/update-todaytask", async (req, res) => {
     const { username, plan, date, task,changetodaytask } = req.body;
