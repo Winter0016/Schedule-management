@@ -8,6 +8,7 @@ import profile from "./assets/profile_3135715.png"
 import sidebar from "./assets/sidebar.png"
 import closesidebar from "./assets/closesidebar.png"
 import closecross from "./assets/2191538_close_cross_delete_erase_hide_icon.png"
+import deadline from "./assets/deadline.png"
 
 
 export default {
@@ -21,4 +22,5 @@ export default {
     Challenger: Challenger,
     trashcan:trashcan,
     closecross:closecross,
+    deadline:deadline,
 }

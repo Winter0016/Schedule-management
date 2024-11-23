@@ -382,11 +382,12 @@ export const Schedule = () => {
                                                               backgroundColor: `${task.color}`,
                                                               color: `${task.textcolor}`,
                                                             }}
-                                                            className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit`}
+                                                            className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit flex flex-wrap gap-1 items-center`}
                                                           >
                                                             {task.name}
                                                             {task.timestart !== ':' && task.timeend !== ':' &&
                                                             `(${task.timestart}-${task.timeend})`}
+                                                            <img src={images.deadline} className=' size-7' alt="" />
                                                           </p>
                                                         )
                                                       }
@@ -466,18 +467,19 @@ export const Schedule = () => {
                                                           (task.deadline.split("/")[1] == (data.day < days ? Math.abs(date - Math.abs(data.day - days)).toString(): Math.abs(date + Math.abs(data.day - days)) <= Endmonth ? Math.abs(date + Math.abs(data.day - days)).toString(): '') && 
                                                           task.deadline.split("/")[0] == (months + 1).toString()) && 
                                                             (
-                                                              <p
-                                                                title={`${task.description}`}
-                                                                style={{
-                                                                  backgroundColor: `${task.color}`,
-                                                                  color: `${task.textcolor}`,
-                                                                }}
-                                                                className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit`}
-                                                              >
-                                                                {task.name}
-                                                                {task.timestart !== ':' && task.timeend !== ':' &&
-                                                                `(${task.timestart}-${task.timeend})`}
-                                                              </p>
+                                                                <p
+                                                                  title={`${task.description}`}
+                                                                  style={{
+                                                                    backgroundColor: `${task.color}`,
+                                                                    color: `${task.textcolor}`,
+                                                                  }}
+                                                                  className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit flex flex-wrap gap-1 items-center`}
+                                                                >
+                                                                  {task.name}
+                                                                  {task.timestart !== ':' && task.timeend !== ':' &&
+                                                                  `(${task.timestart}-${task.timeend})`}
+                                                                  <img src={images.deadline} className=' size-7' alt="" />
+                                                                </p>
                                                             )
                                                         }
                                                     </React.Fragment>

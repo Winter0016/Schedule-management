@@ -60,16 +60,7 @@ function App() {
     }
 }
 
-  const sortactivity = (activityarray) => {
-    return activityarray.sort((a, b) => parseInt(a.timestart.split(":")[0]) - parseInt(b.timestart.split(":")[0]));
-  };
-  
-  const finddaily = (daily) => {
-    return daily.map((key) => ({
-      ...key,
-      activities: sortactivity(key.activities)
-    }));
-  };
+
 
   const checkrefreshtoken = async (myrefreshtoken) => {
     try {
@@ -172,6 +163,17 @@ function App() {
     }
 };
 
+  const sortactivity = (activityarray) => {
+    return activityarray.sort((a, b) => parseInt(a.timestart.split(":")[0]) - parseInt(b.timestart.split(":")[0]));
+  };
+
+  const finddaily = (daily) => {
+    return daily.map((key) => ({
+      ...key,
+      activities: sortactivity(key.activities)
+    }));
+  };
+
   const getplan = async(req,res) =>{
     try{
         setloadingplan(true)
@@ -186,7 +188,7 @@ function App() {
         if(data){
           const updatedplan = data.plans.map((key) => ({
             ...key,
-            daily: finddaily(key.daily)
+            daily: finddaily(key.daily),
           }));
           setplan(updatedplan);
         }

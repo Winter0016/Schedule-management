@@ -170,30 +170,36 @@ export const Mytask = () =>{
         }
     }
 
-    const estimatetime = (deadline) => {
+    // const estimatetime = (deadline) => {
+    //     const today = new Date();
+    //     const todayMonth = today.getMonth() + 1; // Current month (1-12)
+    //     const todayDate = today.getDate(); // Current date (1-31)
+
+    //     const [month, date] = deadline.split("/").map(Number); // Parse month and date
+
+    //     const deadlineDate = new Date(today.getFullYear(), month - 1, date); // month - 1 because months are 0-indexed
+
+    //     const timeDifference = deadlineDate - today;
+    //     // console.log(`timedifference : ${timeDifference}`)
+    //     // console.log(`1 day in millisecond : ${(1000 * 60 * 60 * 24)}`)
+    //     // console.log(timeDifference / (1000 * 60 * 60 * 24))
+
+    //     const daysLeft = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+
+    //     if (daysLeft < 0) {
+    //         return ("Deadline has passed");
+    //     } else {
+    //         return(`${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`);
+    //     }
+    // }
+
+    const calculateDaysLeft = (deadline) => {
         const today = new Date();
-        const todayMonth = today.getMonth() + 1; // Current month (1-12)
-        const todayDate = today.getDate(); // Current date (1-31)
-
-        const [month, date] = deadline.split("/").map(Number); // Parse month and date
-
-        const deadlineDate = new Date(today.getFullYear(), month - 1, date); // month - 1 because months are 0-indexed
-
+        const [month, day] = deadline.split("/").map(Number);
+        const deadlineDate = new Date(today.getFullYear(), month - 1, day);
         const timeDifference = deadlineDate - today;
-        // console.log(`timedifference : ${timeDifference}`)
-        // console.log(`1 day in millisecond : ${(1000 * 60 * 60 * 24)}`)
-        // console.log(timeDifference / (1000 * 60 * 60 * 24))
-
-        const daysLeft = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
-
-        if (daysLeft < 0) {
-            return ("Deadline has passed");
-        } else {
-            return(`${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`);
-        }
-    }
-
-    estimatetime("11/18");
+        return Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+    };
     //sample of using Array.from
 
     // const fruits = ['apple', 'banana', 'orange'];
@@ -417,7 +423,7 @@ export const Mytask = () =>{
                             }
                         </div>
                         
-                        <div className='border-[1px] border-gray-500 max-h-[30rem] overflow-auto p-2 rounded-2xl break-words'>
+                        <div className='border-[1px] border-gray-500 max-h-[30rem] overflow-auto p-2 rounded-2xl break-words flex flex-col'>
                             <div className=' relative'>
                                 <button className='absolute left-3 rounded-xl px-8 py-1 bg-custompurple hover:bg-opacity-70' disabled={!selectedOption} onClick={()=>setaddtask(!addtask)}>ADD</button>
                                 <div className='text-2xl font-bold text-center my-1'>TASK</div>
@@ -431,39 +437,62 @@ export const Mytask = () =>{
                                 </div>
                             </div>
                             {/* rollover1 */}
-                            {
-                                plan && selectedOption && (
-                                <>
-                                    {
-                                        plan.map((data) =>(
-                                            <React.Fragment key={data._id}>
-                                            {data.name == selectedOption &&(
-                                                <>
-                                                    {data.my_task.map((data2) => (
-                                                        <React.Fragment key={data2._id}>
-                                                            <div className='grid grid-cols-2'>
-                                                                <div className='border-r-[1px]'>
-                                                                    <div className='flex items-center'>                                                     
-                                                                        <div style={{backgroundColor: `${data2.color}`, color: `${data2.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm font-bold hover:cursor-pointer`} onClick={()=>{setaddtask(true);setacname(data2.name);setmodifyacname(data2.name);setchoosecolor(data2.color);setmodify(true);choosetextcolor(data2.textcolor);setdescriptionac(data2.description);setSelectedMonth(data2.deadline.split("/")[0]);setSelectedDate(data2.deadline.split("/")[1]);setmytaskid(data2._id)}}>{data2.name}{data2.timestart !== ':' && data2.timeend !== ':' &&`(${data2.timestart}-${data2.timeend})`}</div>
-                                                                    </div> 
-                                                                    <div className='ml-2 font-bold'>Deadline: {data2.deadline}</div>                                    
-                                                                    <div className='ml-2 text-red-700'>Countdown: ({estimatetime(data2.deadline)})</div>                                    
-                                                                    <div className='ml-2 text-green-700'>Progress: </div>                                    
-                                                                </div>
-                                                                <div>
-                                                                    <div style={{backgroundColor: `${data2.color}`, color: `${data2.textcolor}`}} className='text-center m-2 p-1 rounded-xl'>{data2.description ? data2.description : "No description"}</div>
-                                                                </div>
-                                                            </div>
-                                                        </React.Fragment>
-                                                    ))}
-                                                </>
-                                            )}
-                                            </React.Fragment>
-                                        ))
-                                    }
-                                </>
-                                )
-                            }
+                            <div className='flex-grow overflow-auto hide-scrollbar'>
+                                {
+                                    plan && selectedOption && (
+                                        <>
+                                            {
+                                                plan.map((data) => (
+                                                    <React.Fragment key={data._id}>
+                                                        {data.name === selectedOption && (
+                                                            <>
+                                                                {data.my_task
+                                                                    .sort((a, b) => {
+                                                                        const daysLeftA = calculateDaysLeft(a.deadline);
+                                                                        const daysLeftB = calculateDaysLeft(b.deadline);
+                                                                        return daysLeftA - daysLeftB; // Sort in ascending order
+                                                                    })
+                                                                    .map((data2) => (
+                                                                        <React.Fragment key={data2._id}>
+                                                                            <div className='grid grid-cols-2 mb-4'>
+                                                                                <div className='border-r-[1px]'>
+                                                                                    <div className='flex items-center'>
+                                                                                        <div style={{ backgroundColor: `${data2.color}`, color: `${data2.textcolor}` }} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm font-bold hover:cursor-pointer`} onClick={() => {
+                                                                                            setaddtask(true);
+                                                                                            setacname(data2.name);
+                                                                                            setmodifyacname(data2.name);
+                                                                                            setchoosecolor(data2.color);
+                                                                                            setmodify(true);
+                                                                                            choosetextcolor(data2.textcolor);
+                                                                                            setdescriptionac(data2.description);
+                                                                                            setSelectedMonth(data2.deadline.split("/")[0]);
+                                                                                            setSelectedDate(data2.deadline.split("/")[1]);
+                                                                                            setmytaskid(data2._id);
+                                                                                        }}>
+                                                                                            {data2.name}
+                                                                                            {data2.timestart !== ':' && data2.timeend !== ':' && `(${data2.timestart}-${data2.timeend})`}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className='ml-2 font-bold'>Deadline: {data2.deadline}</div>
+                                                                                    <div className='ml-2 text-red-700'>Countdown: ({calculateDaysLeft(data2.deadline)} days left)</div>
+                                                                                    <div className='ml-2 text-green-700'>Progress: </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div style={{ backgroundColor: `${data2.color}`, color: `${data2.textcolor}` }} className='text-center m-2 p-1 rounded-xl'>{data2.description ? data2.description : "No description"}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </React.Fragment>
+                                                                    ))}
+                                                            </>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))
+                                            }
+                                        </>
+                                    )
+                                }
+                            </div>
+                        
                         </div>
                         </div>
                     </div>                
