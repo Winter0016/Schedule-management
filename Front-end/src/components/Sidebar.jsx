@@ -23,7 +23,7 @@ export const Sidebar = () =>{
           <div className='mt-7 flex flex-col gap-7'>
               <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=> navigate("plan")}>Plan</div>
               <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=> navigate("schedule")}>Daily Schedule</div>
-              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=>navigate("mytask")}>My Task</div>
+              <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={()=>navigate("mytask")}>Task</div>
               <div className='cursor-pointer hover:bg-gray-700 p-3'>Finished Task</div>
               <div className='cursor-pointer hover:bg-gray-700 p-3'>Music List</div>
           </div>

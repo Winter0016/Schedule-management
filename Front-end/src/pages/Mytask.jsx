@@ -1,5 +1,5 @@
 
-import React, { useState, useContext} from 'react';
+import React, { useState, useContext,useEffect} from 'react';
 import { Usercontext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import images from '../images'; // Assuming 'images.island' is a valid image path
@@ -87,6 +87,20 @@ export const Mytask = () =>{
             }
         }
     };
+
+    const clearacresult = () => {
+        setupdatetaskresult("")
+    }
+
+    useEffect(()=>{
+
+      if (updatetaskresult == "Added task successfully!" || updatetaskresult == "Updated task successfully!") {
+        const mytimeout = setTimeout(clearacresult, 2000);
+      }
+      else if(updatetaskresult == "Deleted activity successfully"){
+        closefunction();
+      }
+    },[updatetaskresult])
           // rollover2
     const updatetask = async(e)=>{
         e.preventDefault();
@@ -213,6 +227,10 @@ export const Mytask = () =>{
     // ]  
     
     //
+
+    const closefunction = ()=>{
+        setaddtask(false);setupdatetaskresult("");setmodify(false);setmodifyacname("")
+    }
     return(
         <>
             <div className='w-screen h-screen overflow-auto bg-customgray relative'>
@@ -220,7 +238,7 @@ export const Mytask = () =>{
                     <>
                         <div className='absolute w-screen h-screen bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
                             <div className='w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark relative max-h-[44rem] overflow-auto hide-scrollbar'>
-                                <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => { setaddtask(false);setupdatetaskresult("");setmodify(false);setmodifyacname("")}} alt="" />
+                                <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => closefunction()} alt="" />
                                 <div className='text-center break-words text-customblue text-2xl'>TASK</div>
                                 <form onSubmit={updatetask}>
                                     <div className={`text-base text-gray-400 mt-3`}>{modify ? "Current Title" : "Title"}</div>
@@ -355,11 +373,11 @@ export const Mytask = () =>{
                         }
                         </div>
                         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3 px-5 font-roboto'>
-                        <div className='border-[1px] border-gray-500 max-h-[30rem] overflow-auto p-2 rounded-2xl break-words'>
+                        <div className='border-[1px] border-gray-500 max-h-[30rem] p-2 rounded-2xl break-words flex flex-col'>
                             <div className='text-2xl font-bold text-center my-1'>Today Schedule</div>
                             {checkedarray.length > 0 && (
                             <>
-                                <button className='border-[1px] border-customblue text-purple-300 py-2 px-6 rounded-3xl hover:bg-custompurple bg-customblue2' disabled={updatingcheckedarray} onClick={updatecheckedarray}>{updatingcheckedarray ? "Updating" : "Update"}</button>
+                                <button className='border-[1px] border-customblue text-purple-300 py-2 px-6 rounded-3xl hover:bg-custompurple bg-customblue2 w-fit' disabled={updatingcheckedarray} onClick={updatecheckedarray}>{updatingcheckedarray ? "Updating" : "Update"}</button>
                             </>
                             )}
                             <div className='grid grid-cols-2'>
@@ -370,57 +388,63 @@ export const Mytask = () =>{
                                     <div className='text-center border-b-[1px]'>Description</div>
                                 </div>
                             </div>
-                            {
-                                plan && selectedOption && (
-                                <>
-                                    {
-                                        plan.map((data) =>(
-                                            <React.Fragment key={data._id}>
-                                            {data.name == selectedOption &&(
-                                                <>
-                                                    {data.todaytask.map((data2) => (
-                                                        <React.Fragment key={data2._id}>
-                                                        {
-                                                            data2.task.map((data3) =>(
-                                                            <React.Fragment key={data3._id}>
-                                                                <div className='grid grid-cols-2'>
-                                                                    <div className='border-r-[1px]'>
-                                                                        <div className='flex items-center'>
-                                                                            <input
-                                                                            type="checkbox"
-                                                                            className={` size-4 lg:size-5 shrink-0`}
-                                                                            checked={data3.status == "Finished" ? true : checkedarray.includes(data3.name)}
-                                                                            onChange={(e) => {
-                                                                                if (e.target.checked) {
-                                                                                // Add the id to the array if checked
-                                                                                setcheckedarray((prev) => [...prev, data3.name]);
-                                                                                } else {
-                                                                                // Remove the id from the array if unchecked
-                                                                                setcheckedarray((prev) => prev.filter(name => name !== data3.name));
-                                                                                }
-                                                                            }}
-                                                                            disabled={data3.status == "Finished"}
-                                                                            />                                                       
-                                                                            <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}</div>
-                                                                        </div>                                        
+                            <div className='flex-grow overflow-auto hide-scrollbar'>
+                                {
+                                    plan && selectedOption && (
+                                    <>
+                                        {
+                                            plan.map((data) =>(
+                                                <React.Fragment key={data._id}>
+                                                {data.name == selectedOption &&(
+                                                    <>
+                                                        {data.todaytask.map((data2) => (
+                                                            <React.Fragment key={data2._id}>
+                                                            {
+                                                                data2.task.map((data3) =>(
+                                                                <React.Fragment key={data3._id}>
+                                                                    <div className='grid grid-cols-2'>
+                                                                        <div className='border-r-[1px] pb-3'>
+                                                                            <div className='flex items-center'>
+                                                                                <input
+                                                                                type="checkbox"
+                                                                                className={` size-4 lg:size-5 shrink-0`}
+                                                                                checked={data3.status == "Finished" ? true : checkedarray.includes(data3.name)}
+                                                                                onChange={(e) => {
+                                                                                    if (e.target.checked) {
+                                                                                    // Add the id to the array if checked
+                                                                                    setcheckedarray((prev) => [...prev, data3.name]);
+                                                                                    } else {
+                                                                                    // Remove the id from the array if unchecked
+                                                                                    setcheckedarray((prev) => prev.filter(name => name !== data3.name));
+                                                                                    }
+                                                                                }}
+                                                                                disabled={data3.status == "Finished"}
+                                                                                />                                                       
+                                                                                <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm flex items-center gap-1 ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}
+                                                                                    {data3.task == true && (
+                                                                                                                                                                                                                                                        <img src={images.deadline} className=' size-7' alt="" />
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>                                        
+                                                                        </div>
+                                                                        <div>
+                                                                            <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className='text-center m-2 p-1 rounded-xl'>{data3.description ? data3.description : "No description"}</div>
+                                                                        </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className='text-center m-2 p-1 rounded-xl'>{data3.description ? data3.description : "No description"}</div>
-                                                                    </div>
-                                                                </div>
+                                                                </React.Fragment>
+                                                                ))
+                                                            }
                                                             </React.Fragment>
-                                                            ))
-                                                        }
-                                                        </React.Fragment>
-                                                    ))}
-                                                </>
-                                            )}
-                                            </React.Fragment>
-                                        ))
-                                    }
-                                </>
-                                )
-                            }
+                                                        ))}
+                                                    </>
+                                                )}
+                                                </React.Fragment>
+                                            ))
+                                        }
+                                    </>
+                                    )
+                                }
+                            </div>  
                         </div>
                         
                         <div className='border-[1px] border-gray-500 max-h-[30rem] overflow-auto p-2 rounded-2xl break-words flex flex-col'>
@@ -454,8 +478,8 @@ export const Mytask = () =>{
                                                                     })
                                                                     .map((data2) => (
                                                                         <React.Fragment key={data2._id}>
-                                                                            <div className='grid grid-cols-2 mb-4'>
-                                                                                <div className='border-r-[1px]'>
+                                                                            <div className='grid grid-cols-2'>
+                                                                                <div className='border-r-[1px] pb-3'>
                                                                                     <div className='flex items-center'>
                                                                                         <div style={{ backgroundColor: `${data2.color}`, color: `${data2.textcolor}` }} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm font-bold hover:cursor-pointer`} onClick={() => {
                                                                                             setaddtask(true);
@@ -472,6 +496,7 @@ export const Mytask = () =>{
                                                                                             {data2.name}
                                                                                             {data2.timestart !== ':' && data2.timeend !== ':' && `(${data2.timestart}-${data2.timeend})`}
                                                                                         </div>
+                                                                                        
                                                                                     </div>
                                                                                     <div className='ml-2 font-bold'>Deadline: {data2.deadline}</div>
                                                                                     <div className='ml-2 text-red-700'>Countdown: ({calculateDaysLeft(data2.deadline)} days left)</div>

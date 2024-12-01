@@ -96,6 +96,15 @@ export const Schedule = () => {
     const [important, setimportant] = useState(false);
 
 
+    const closefunction = ()=>{
+      setaddschedule(""); 
+      setmodify(false); 
+      setaddacresult(""); 
+      setdailyid(""); 
+      setactiveid(""); 
+      setmodifyacname(""); 
+      setdeleteac("")
+    }
 
     const addactivity = async (e) => {
         e.preventDefault();
@@ -175,9 +184,15 @@ export const Schedule = () => {
         setdeleteac("");
     }
 
-    if (addacresult || deleteac) {
+    useEffect(()=>{
+
+      if (addacresult) {
         const mytimeout = setTimeout(clearacresult, 2000);
-    }
+      }
+      else if(deleteac){
+        closefunction();
+      }
+    },[addacresult,deleteac])
 
     const deleteactivity = async () => {
         try {
@@ -217,20 +232,31 @@ export const Schedule = () => {
     const [Days, setDays] = useState();
     const [Months, setMonths] = useState();
     const [Endmonth, setEndmonth] = useState();
+    const [PreviousEndmonth,setPreviousEndmonth] = useState();
 
     useEffect(() => {
         if (Months) {
             const endmonth = Months.find((key) => key.month === months - 1).end;
+            const previousendmonth = Months.find((key)=> key.month === months - 2).end;
             setEndmonth(endmonth);
+            setPreviousEndmonth(previousendmonth)
         }
     }, [Months]);
+//rollover4
+    // if(Endmonth){
+    //   console.log(Endmonth)
+    // }
+    // console.log(days)
+
+
+
     return (
         <div className='w-full h-screen overflow-auto bg-customgray relative'>
           {addschedule && (
             <>
-                <div className='absolute w-full h-full bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
-                  <div className='w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark overflow-auto relative'>
-                    <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => { setaddschedule(""); setmodify(false); setaddacresult(""); setdailyid(""); setactiveid(""); setmodifyacname(""); setdeleteac("") }} alt="" />
+                <div className='absolute w-screen h-screen bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
+                  <div className='w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark relative max-h-[44rem] overflow-auto hide-scrollbar'>
+                    <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => closefunction()} alt="" />
                     <div className='text-center break-words text-customblue text-2xl'>{addschedule}'s Schedule</div>
                     <form onSubmit={addactivity}>
                       <div className={`text-base text-gray-400 mt-3`}>{modify ? "Current Title" : "Title"}</div>
@@ -338,108 +364,19 @@ export const Schedule = () => {
                   <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 px-5'>
                     {Days.map((data) => (
                       <div
-                        className='w-full h-[9.7rem] border border-gray-500 text-sm'
-                        key={data._id}
-                      >
+                        className=' flex flex-col w-full h-[9.7rem] border border-gray-500 text-sm'
+                        key={data._id}>
                         <div className='text-center border-b border-gray-600 p-1'>
                           {translateDay(data.day)}
                         </div>
-                      {data.day === days ? (
-                        <div className='flex flex-col overflow-y-auto'>
-                          <div className='flex flex-wrap gap-2 items-center mt-1'>
-                            <div className='pl-3'>{date}</div>
-                            <div className='py-1 px-2 rounded-xl text-custompurple border border-custompurple'>
-                                Today
-                            </div>
-                            <button
-                              className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
-                              disabled={!selectedOption}
-                              onClick={() => setaddschedule(translateDay(data.day))}
-                            >
-                              Add Schedule
-                            </button>
-                          </div>
-                          <div className='mt-3 text-sm overflow-auto h-[4.5rem] flex flex-wrap gap-2 pl-3 hide-scrollbar'>
-                            {plan && (
-                              <>
-                                {plan.map((data2) => (
-                                  <React.Fragment key={data2._id}> {/* Add key here */}
-                                    {data2.name === selectedOption && (
-                                      <>
-                                        {data2.daily.map((activity) => (
-                                          <React.Fragment key={activity._id}> {/* Add key here */}
-                                            {activity.day === days && (
-                                              <>
-                                                {
-                                                  data2.my_task.map((task)=> (
-                                                    <React.Fragment key={task._id}>
-                                                      {
-                                                        (task.deadline.split("/")[1] === date.toString() && 
-                                                        task.deadline.split("/")[0] === (months + 1).toString()) && (
-                                                          <p
-                                                            title={`${task.description}`}
-                                                            style={{
-                                                              backgroundColor: `${task.color}`,
-                                                              color: `${task.textcolor}`,
-                                                            }}
-                                                            className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit flex flex-wrap gap-1 items-center`}
-                                                          >
-                                                            {task.name}
-                                                            {task.timestart !== ':' && task.timeend !== ':' &&
-                                                            `(${task.timestart}-${task.timeend})`}
-                                                            <img src={images.deadline} className=' size-7' alt="" />
-                                                          </p>
-                                                        )
-                                                      }
-                                                    </React.Fragment>
-                                                  ))
-                                                }
-                                                {activity.activities.map((active) => (
-                                                  <p
-                                                    key={active._id} // Keep your existing key here
-                                                    title={`${active.description}`}
-                                                    style={{
-                                                      backgroundColor: `${active.color}`,
-                                                      color: `${active.textcolor}`,
-                                                    }}
-                                                    className={`${active.important ? "font-bold underline-offset-4 underline" : ""} p-1 rounded-xl w-fit h-fit cursor-pointer`}
-                                                    onClick={() => {
-                                                      setaddschedule(translateDay(data.day));
-                                                      setacname(active.name);
-                                                      setdescriptionac(active.description);
-                                                      choosetextcolor(active.textcolor);
-                                                      setchoosecolor(active.color);
-                                                      setmodify(true);
-                                                      setmodifyacname(active.name);
-                                                      setdailyid(activity._id);
-                                                      setactiveid(active._id);
-                                                      setTime({ minutes: active.timestart.split(":")[1], hours: active.timestart.split(":")[0] });
-                                                      setTime2({ minutes: active.timeend.split(":")[1], hours: active.timeend.split(":")[0] });
-                                                      setimportant(active.important);
-                                                    }}
-                                                  >
-                                                    {active.name}
-                                                    {active.timestart !== ':' && active.timeend !== ':' &&
-                                                    `(${active.timestart}-${active.timeend})`}
-                                                  </p>
-                                                ))}
-                                              </>
-                                            )}
-                                          </React.Fragment>
-                                        ))}
-                                      </>
-                                    )}
-                                  </React.Fragment>
-                                ))}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        ) : (
-                          <div className='flex flex-col overflow-y-auto'>
+                      
+                        {data.day === days ? (
+                          // rollover2
+                          <div className='flex flex-col overflow-y-auto flex-grow pb-2'>
                             <div className='flex flex-wrap gap-2 items-center mt-1'>
-                              <div className='pl-3'>
-                                {data.day < days ? Math.abs(date - Math.abs(data.day - days)): Math.abs(date + Math.abs(data.day - days)) <= Endmonth ? Math.abs(date + Math.abs(data.day - days)): ''}
+                              <div className='pl-3'>{date}</div>
+                              <div className='py-1 px-2 rounded-xl text-custompurple border border-custompurple'>
+                                  Today
                               </div>
                               <button
                                 className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
@@ -449,7 +386,7 @@ export const Schedule = () => {
                                 Add Schedule
                               </button>
                             </div>
-                            <div className='mt-3 text-sm overflow-auto h-[4.5rem] flex flex-wrap gap-2 pl-3 hide-scrollbar pr-3'>
+                            <div className='mt-3 text-sm overflow-y-auto flex flex-wrap gap-2 pl-3 hide-scrollbar flex-grow'>
                               {plan && (
                                 <>
                                   {plan.map((data2) => (
@@ -458,33 +395,32 @@ export const Schedule = () => {
                                         <>
                                           {data2.daily.map((activity) => (
                                             <React.Fragment key={activity._id}> {/* Add key here */}
-                                              {activity.day === data.day && (
+                                              {activity.day === days && (
                                                 <>
                                                   {
                                                     data2.my_task.map((task)=> (
                                                       <React.Fragment key={task._id}>
                                                         {
-                                                          (task.deadline.split("/")[1] == (data.day < days ? Math.abs(date - Math.abs(data.day - days)).toString(): Math.abs(date + Math.abs(data.day - days)) <= Endmonth ? Math.abs(date + Math.abs(data.day - days)).toString(): '') && 
-                                                          task.deadline.split("/")[0] == (months + 1).toString()) && 
-                                                            (
-                                                                <p
-                                                                  title={`${task.description}`}
-                                                                  style={{
-                                                                    backgroundColor: `${task.color}`,
-                                                                    color: `${task.textcolor}`,
-                                                                  }}
-                                                                  className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit flex flex-wrap gap-1 items-center`}
-                                                                >
-                                                                  {task.name}
-                                                                  {task.timestart !== ':' && task.timeend !== ':' &&
-                                                                  `(${task.timestart}-${task.timeend})`}
-                                                                  <img src={images.deadline} className=' size-7' alt="" />
-                                                                </p>
-                                                            )
+                                                          (task.deadline.split("/")[1] === date.toString() && 
+                                                          task.deadline.split("/")[0] === (months + 1).toString()) && (
+                                                            <p
+                                                              title={`${task.description}`}
+                                                              style={{
+                                                                backgroundColor: `${task.color}`,
+                                                                color: `${task.textcolor}`,
+                                                              }}
+                                                              className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit flex flex-wrap gap-1 items-center`}
+                                                            >
+                                                              {task.name}
+                                                              {task.timestart !== ':' && task.timeend !== ':' &&
+                                                              `(${task.timestart}-${task.timeend})`}
+                                                              <img src={images.deadline} className=' size-7' alt="" />
+                                                            </p>
+                                                          )
                                                         }
-                                                    </React.Fragment>
-                                                  ))
-                                                }
+                                                      </React.Fragment>
+                                                    ))
+                                                  }
                                                   {activity.activities.map((active) => (
                                                     <p
                                                       key={active._id} // Keep your existing key here
@@ -495,23 +431,23 @@ export const Schedule = () => {
                                                       }}
                                                       className={`${active.important ? "font-bold underline-offset-4 underline" : ""} p-1 rounded-xl w-fit h-fit cursor-pointer`}
                                                       onClick={() => {
-                                                          setaddschedule(translateDay(data.day));
-                                                          setacname(active.name);
-                                                          setdescriptionac(active.description);
-                                                          choosetextcolor(active.textcolor);
-                                                          setchoosecolor(active.color);
-                                                          setmodify(true);
-                                                          setmodifyacname(active.name);
-                                                          setdailyid(activity._id);
-                                                          setactiveid(active._id);
-                                                          setTime({ minutes: active.timestart.split(":")[1], hours: active.timestart.split(":")[0] });
-                                                          setTime2({ minutes: active.timeend.split(":")[1], hours: active.timeend.split(":")[0] });
-                                                          setimportant(active.important);
+                                                        setaddschedule(translateDay(data.day));
+                                                        setacname(active.name);
+                                                        setdescriptionac(active.description);
+                                                        choosetextcolor(active.textcolor);
+                                                        setchoosecolor(active.color);
+                                                        setmodify(true);
+                                                        setmodifyacname(active.name);
+                                                        setdailyid(activity._id);
+                                                        setactiveid(active._id);
+                                                        setTime({ minutes: active.timestart.split(":")[1], hours: active.timestart.split(":")[0] });
+                                                        setTime2({ minutes: active.timeend.split(":")[1], hours: active.timeend.split(":")[0] });
+                                                        setimportant(active.important);
                                                       }}
                                                     >
                                                       {active.name}
                                                       {active.timestart !== ':' && active.timeend !== ':' &&
-                                                        `(${active.timestart}-${active.timeend})`}
+                                                      `(${active.timestart}-${active.timeend})`}
                                                     </p>
                                                   ))}
                                                 </>
@@ -521,11 +457,103 @@ export const Schedule = () => {
                                         </>
                                       )}
                                     </React.Fragment>
-                                    ))}
+                                  ))}
                                 </>
                               )}
                             </div>
                           </div>
+                          ) : (
+                            //rollover3
+                            <div className='flex flex-col overflow-y-auto flex-grow pb-2'>
+                              <div className='flex flex-wrap gap-2 items-center mt-1'>
+                                <div className='pl-3'>
+                                  {data.day < days ? (date - (days - data.day)) <= 0 ? PreviousEndmonth + (date - (days - data.day)) : (date - (days - data.day)) : (date + (data.day - days)) < Endmonth ? (date + (data.day - days)) : ""}
+                                 </div>
+                                <button
+                                  className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
+                                  disabled={!selectedOption}
+                                  onClick={() => setaddschedule(translateDay(data.day))}
+                                >
+                                  Add Schedule
+                                </button>
+                              </div>
+                              <div className='mt-3 text-sm overflow-auto flex flex-wrap gap-2 pl-3 hide-scrollbar pr-3'>
+                                {plan && (
+                                  <>
+                                    {plan.map((data2) => (
+                                      <React.Fragment key={data2._id}> {/* Add key here */}
+                                        {data2.name === selectedOption && (
+                                          <>
+                                            {data2.daily.map((activity) => (
+                                              <React.Fragment key={activity._id}> {/* Add key here */}
+                                                {activity.day === data.day && (
+                                                  <>
+                                                    {
+                                                      data2.my_task.map((task)=> (
+                                                        <React.Fragment key={task._id}>
+                                                          {
+                                                            Number(task.deadline.split("/")[1]) == (data.day < days ? (date - (days - data.day)) <= 0 ? PreviousEndmonth + (date - (days - data.day)) : (date - (days - data.day)) : (date + (data.day - days)) < Endmonth ? (date + (data.day - days)) : "") && 
+                                                            Number(task.deadline.split("/")[0]) == (data.day < days ? (date - (days - data.day)) <= 0 ? months : months + 1 : (date + (data.day - days)) < Endmonth ? months : "") && 
+                                                              (
+                                                                  <p
+                                                                    title={`${task.description}`}
+                                                                    style={{
+                                                                      backgroundColor: `${task.color}`,
+                                                                      color: `${task.textcolor}`,
+                                                                    }}
+                                                                    className={`font-bold underline-offset-4 underline p-1 rounded-xl w-fit h-fit flex flex-wrap gap-1 items-center`}
+                                                                  >
+                                                                    {task.name}
+                                                                    {task.timestart !== ':' && task.timeend !== ':' &&
+                                                                    `(${task.timestart}-${task.timeend})`}
+                                                                    <img src={images.deadline} className=' size-7' alt="" />
+                                                                  </p>
+                                                              )
+                                                          }
+                                                      </React.Fragment>
+                                                    ))
+                                                  }
+                                                    {activity.activities.map((active) => (
+                                                      <p
+                                                        key={active._id} // Keep your existing key here
+                                                        title={`${active.description}`}
+                                                        style={{
+                                                          backgroundColor: `${active.color}`,
+                                                          color: `${active.textcolor}`,
+                                                        }}
+                                                        className={`${active.important ? "font-bold underline-offset-4 underline" : ""} p-1 rounded-xl w-fit h-fit cursor-pointer`}
+                                                        onClick={() => {
+                                                            setaddschedule(translateDay(data.day));
+                                                            setacname(active.name);
+                                                            setdescriptionac(active.description);
+                                                            choosetextcolor(active.textcolor);
+                                                            setchoosecolor(active.color);
+                                                            setmodify(true);
+                                                            setmodifyacname(active.name);
+                                                            setdailyid(activity._id);
+                                                            setactiveid(active._id);
+                                                            setTime({ minutes: active.timestart.split(":")[1], hours: active.timestart.split(":")[0] });
+                                                            setTime2({ minutes: active.timeend.split(":")[1], hours: active.timeend.split(":")[0] });
+                                                            setimportant(active.important);
+                                                        }}
+                                                      >
+                                                        {active.name}
+                                                        {active.timestart !== ':' && active.timeend !== ':' &&
+                                                          `(${active.timestart}-${active.timeend})`}
+                                                      </p>
+                                                    ))}
+                                                  </>
+                                                )}
+                                              </React.Fragment>
+                                            ))}
+                                          </>
+                                        )}
+                                      </React.Fragment>
+                                      ))}
+                                  </>
+                                )}
+                              </div>
+                            </div>
                         )}
                       </div>
                     ))}

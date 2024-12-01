@@ -64,7 +64,7 @@ function App() {
 
   const checkrefreshtoken = async (myrefreshtoken) => {
     try {
-      console.log(`running checkrefreshtoken at app.js`);
+      // console.log(`running checkrefreshtoken at app.js`);
       const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
@@ -114,31 +114,49 @@ function App() {
   const updateTodayTask = async () => {
     let currentChangetodaytask = false; // Use a local variable
     let taskarray = []; // Initialize taskarray here
-
+    // console.log(`updating`)
     try {
         // Fetch the latest plan data first
         if (plan && selectedOption) {
             // console.log(`plan and selected option`)
             plan.forEach((data2) => {
                 if (data2.name === selectedOption) {
+                  // currentChangetodaytask = true // use to overrun the current( only for developing )
+                  if(addtask == true){
+                    currentChangetodaytask = true;
+                  }
+                  data2.my_task.forEach((task)=>{
+                    if(task.deadline.split("/")[0] == (months + 1).toString() && task.deadline.split("/")[1] == date.toString()){
+                      taskarray.push({
+                        name:task.name,
+                        description:task.description,
+                        timestart: task.timestart,
+                        timeend: task.timeend,
+                        color: task.color,
+                        textcolor: task.textcolor,
+                        important: true,
+                        task:true,
+                      })
+                    }
+                  })
                     data2.daily.forEach((activity) => {
-                        if (activity.day === days) {
-                            if (reversetranslateDay(addschedule) == days) {
-                                // console.log(`changetodaytask due to addschedule`)
-                                currentChangetodaytask = true; // Update the local variable
-                            }
-                            activity.activities.forEach((active) => {
-                                taskarray.push({
-                                    name: active.name,
-                                    description: active.description,
-                                    timestart: active.timestart,
-                                    timeend: active.timeend,
-                                    color: active.color,
-                                    textcolor: active.textcolor,
-                                    important: active.important,
-                                });
-                            });
+                      if (activity.day === days) {
+                        if (reversetranslateDay(addschedule) == days) {
+                          // console.log(`changetodaytask due to addschedule`)
+                          currentChangetodaytask = true; // Update the local variable
                         }
+                        activity.activities.forEach((active) => {
+                          taskarray.push({
+                            name: active.name,
+                            description: active.description,
+                            timestart: active.timestart,
+                            timeend: active.timeend,
+                            color: active.color,
+                            textcolor: active.textcolor,
+                            important: active.important,
+                          });
+                        });
+                      }
                     });
                 }
             });
@@ -200,7 +218,7 @@ function App() {
   }
   useEffect(()=>{
     if(loggedusername){
-      console.log(`running getplan`)
+      // console.log(`running getplan`)
       getplan();
     }  
   },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption,updatetaskresult])

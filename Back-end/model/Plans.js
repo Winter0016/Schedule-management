@@ -129,7 +129,11 @@ const todaytask = new Schema({
       dateupdated:{
         type:String,
         default:null,
-      }
+      },
+      task:{
+        type:Boolean,
+        default:false,
+      },
     }
   ]
 
