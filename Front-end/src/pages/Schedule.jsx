@@ -493,7 +493,7 @@ export const Schedule = () => {
                                                         <React.Fragment key={task._id}>
                                                           {
                                                             Number(task.deadline.split("/")[1]) == (data.day < days ? (date - (days - data.day)) <= 0 ? PreviousEndmonth + (date - (days - data.day)) : (date - (days - data.day)) : (date + (data.day - days)) < Endmonth ? (date + (data.day - days)) : "") && 
-                                                            Number(task.deadline.split("/")[0]) == (data.day < days ? (date - (days - data.day)) <= 0 ? months : months + 1 : (date + (data.day - days)) < Endmonth ? months : "") && 
+                                                            Number(task.deadline.split("/")[0]) == (data.day < days ? (date - (days - data.day)) <= 0 ? months : months + 1 : (date + (data.day - days)) < Endmonth ? months+1 : "") && 
                                                               (
                                                                   <p
                                                                     title={`${task.description}`}
