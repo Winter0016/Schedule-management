@@ -1,5 +1,5 @@
 // Front-end/src/pages/Schedule.jsx
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Usercontext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import images from '../images'; // Assuming 'images.island' is a valid image path
@@ -253,6 +253,31 @@ export const Schedule = () => {
   // }
   // console.log(days)
 
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    const autoScroll = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        let direction = 1; // 1 for down, -1 for up
+        let scrollTop = 0;
+        const intervalId = setInterval(() => {
+          scrollTop += 1 * direction; // Adjust speed here
+
+          if (scrollTop >= container.scrollHeight - container.clientHeight) {
+            direction = -1;
+          } else if (scrollTop <= 0) {
+            direction = 1;
+          }
+
+          container.scrollTop = scrollTop;
+        }, 10); // Adjust speed (10 milliseconds)
+
+        return () => clearInterval(intervalId);
+      }
+    };
+  }, []);
+
 
 
   return (
@@ -391,7 +416,7 @@ export const Schedule = () => {
                             Add Schedule
                           </button>
                         </div>
-                        <div className='mt-3 text-sm overflow-y-auto flex flex-wrap gap-2 pl-3 hide-scrollbar flex-grow'>
+                        <div className='mt-3 text-sm overflow-y-auto flex flex-wrap gap-2 pl-3 hide-scrollbar flex-grow border-2'>
                           {plan && (
                             <>
                               {plan.map((data2) => (
@@ -482,7 +507,7 @@ export const Schedule = () => {
                             Add Schedule
                           </button>
                         </div>
-                        <div className='mt-3 text-sm overflow-auto flex flex-wrap gap-2 pl-3 hide-scrollbar pr-3'>
+                        <div className='mt-3 text-sm overflow-auto flex flex-wrap gap-2 pl-3 hide-scrollbar pr-3' ref={scrollContainerRef}>
                           {plan && (
                             <>
                               {plan.map((data2) => (
