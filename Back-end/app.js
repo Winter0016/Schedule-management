@@ -27,7 +27,7 @@ app.use(cors({
     origin: 'http://localhost:3001', // Allow only frontend port 3001
     credentials: true                // Allow cookies to be sent with requests
 }));
-  
+
 
 //connect to mongodb
 console.log(process.env.DATABASE_URI)
@@ -42,44 +42,44 @@ const axios = require('axios');
 
 
 // Mock user authentication
-app.get('/greeting',(req,res) =>{
-    res.json({message : "Bon Jour My Love!"})
+app.get('/greeting', (req, res) => {
+    res.json({ message: "Bon Jour My Love!" })
 })
 
 
-const ROLE_LIST ={
+const ROLE_LIST = {
     "Admin": 5150,
-    "Editor":1984,
+    "Editor": 1984,
     "User": 2001
 }
 // const allow = [ROLE_LIST.User,ROLE_LIST.Admin];
 // console.log(allow)
 
 
-const verifyJwt = async(req,res,next) =>{
+const verifyJwt = async (req, res, next) => {
     const authHeader = req.headers.authorization || req.headers.Authorization;
-    if(!authHeader?.startsWith("Bearer ")) return res.status(401).json({"Error":"Couldn't find your JWT!"});
-    console.log("autheaders :",authHeader);
+    if (!authHeader?.startsWith("Bearer ")) return res.status(401).json({ "Error": "Couldn't find your JWT!" });
+    console.log("autheaders :", authHeader);
     const token = authHeader.split(" ")[1];
     jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET,
-        (err,decoded) => {
-            if(err) return (res.status(403).res.json({"message":"The token is not matched!"}));
+        (err, decoded) => {
+            if (err) return (res.status(403).res.json({ "message": "The token is not matched!" }));
             req.user = decoded.Userinfo.username;
             req.roles = decoded.Userinfo.roles;
         }
     )
 }
 const verifyrole = (...allowedrole) => {
-    return (req,res,next) =>{
-        if(!req?.roles) return res.status(401).json({"message":"You don't have any permission."})
+    return (req, res, next) => {
+        if (!req?.roles) return res.status(401).json({ "message": "You don't have any permission." })
         const allowedrolearray = [...allowedrole];
         // const temp = req.roles.map(role => allowedrolearray.includes(role))
         // console.log(temp);
-        const result = req.roles.map(role => allowedrolearray.includes(role)).find(val => val ===true);
+        const result = req.roles.map(role => allowedrolearray.includes(role)).find(val => val === true);
         // console.log(`result of role`,result);
-        if(!result) return res.status(401).json({"message":"You don't have permission for this action"})
+        if (!result) return res.status(401).json({ "message": "You don't have permission for this action" })
         next();
     }
 }
@@ -89,7 +89,7 @@ const verifyrole = (...allowedrole) => {
 
 
 app.post('/auth/register', async (req, res) => {
-    const { username, password, email, role } = req.body;
+    const { username, password, email } = req.body;
 
     // Check if all fields are provided
     if (!username || !password || !email) {
@@ -111,7 +111,6 @@ app.post('/auth/register', async (req, res) => {
             username: username,
             password: hashedPassword,
             email: email,
-            role: role,
             verified: false, // Add verified field to track email verification status
         });
 
@@ -199,13 +198,13 @@ app.get('/verify-email', async (req, res) => {
     }
 });
 
-app.post("/reset-password",async(req,res) =>{
+app.post("/reset-password", async (req, res) => {
     // console.log("running reset password")
-    const {email} = req.body;
-    const user = await User.findOne({email}).exec();
-    if(!user){
+    const { email } = req.body;
+    const user = await User.findOne({ email }).exec();
+    if (!user) {
         return res.json("No user has this email.")
-    }else{
+    } else {
         // console.log("found user")
         const verificationToken = jwt.sign({ userId: user._id }, process.env.VERIFY_KEY, { expiresIn: '1d' });
         const verificationLink = `http://localhost:3001/reset-password?token=${verificationToken}`
@@ -213,87 +212,85 @@ app.post("/reset-password",async(req,res) =>{
             service: 'gmail', // or any other email provider
             auth: {
                 user: 'chauquangphuc2604.2604@gmail.com',
-                pass:  process.env.NODEMALPASS,
+                pass: process.env.NODEMALPASS,
             },
         });
-    
+
         const mailOptions = {
             from: 'chauquangphuc2604.2604@gmail.com',
             to: email,
             subject: 'Reset your password',
             html: `<p>Click the following link to reset your password: <a href="${verificationLink}">Reset Password</a></p>`,
         };
-    
+
         await transporter.sendMail(mailOptions);
         return res.status(201).json("We has sent an link for password reset,please check your email");
     }
 })
-app.post("/verify-token",async(req,res) =>{
-    const {token} = req.body;
+app.post("/verify-token", async (req, res) => {
+    const { token } = req.body;
     // console.log("checking token !")
-    try{
+    try {
         const decoded = jwt.verify(token, process.env.VERIFY_KEY);
         const userId = decoded.userId;
         const user = await User.findById(userId);
         if (!user) {
-            return res.json({message:"Token is Invalid!"});
+            return res.json({ message: "Token is Invalid!" });
         }
         await user.save();
         // console.log("Token is valid")
-        return res.json({message:"Token is valid", username:user.username});
-    }catch(error){
+        return res.json({ message: "Token is valid", username: user.username });
+    } catch (error) {
         console.log(error);
-        return res.json({message:"Token is Invalid or Expired!"})
+        return res.json({ message: "Token is Invalid or Expired!" })
     }
 })
-app.post("/change-password",async(req,res) =>{
-    const {password,username} = req.body;
-    const Founduser = await User.findOne({username: username}).exec();
-    try{
+app.post("/change-password", async (req, res) => {
+    const { password, username } = req.body;
+    const Founduser = await User.findOne({ username: username }).exec();
+    try {
         const bcryptpassword = await bcrypt.hash(password, 10);
         Founduser.password = bcryptpassword;
         await Founduser.save();
         return res.json("Password changed,you now can login back");
-    }catch(error){
+    } catch (error) {
         console.log(error);
         return res.json("Error at changing password!");
     }
 })
 
 
-app.post("/add-plan",async(req,res) =>{
-    const {username,name,timebegin}=req.body;
-    try{
-        const userplanexist = await UserPlan.findOne({username:username}).exec();
-        if(userplanexist){
+app.post("/add-plan", async (req, res) => {
+    const { username, name, timebegin } = req.body;
+    try {
+        const userplanexist = await UserPlan.findOne({ username: username }).exec();
+        if (userplanexist) {
             userplanexist.plans.push({
                 name: name,
                 progress: null,
                 time: null,
-                timebegin:timebegin,
+                timebegin: timebegin,
             });
 
             await userplanexist.save(); // Save after updating the plans array
 
             res.json("Plan added successfully!");
-        }else{
-            const founduser = await User.findOne({username:username}).exec();
-            const userRole = founduser.role;
+        } else {
+            const founduser = await User.findOne({ username: username }).exec();
             const newuserplan = await UserPlan.create({
-                username:username,
-                role:userRole,
-                plans:[
+                username: username,
+                plans: [
                     {
-                        name:name,
-                        progress:null,
-                        time:null,
+                        name: name,
+                        progress: null,
+                        time: null,
                     }
                 ],
             })
             await newuserplan.save();
             return res.json("Created plan successfully!")
         }
-    }catch(error){
+    } catch (error) {
         console.log(error);
         return res.json(error.message)
     }
@@ -306,7 +303,7 @@ app.post("/plan", async (req, res) => {
         if (!founduser) {
             return res.json("");
         }
-        res.json({plans:founduser.plans}); // Ensure response is sent only once
+        res.json({ plans: founduser.plans }); // Ensure response is sent only once
     } catch (error) {
         console.log(error);
         res.json(error.message); // Send an error response only if needed
@@ -379,7 +376,7 @@ app.post("/delete-task", async (req, res) => {
 });
 
 app.post("/update-todaytask", async (req, res) => {
-    const { username, plan, date, task,changetodaytask } = req.body;
+    const { username, plan, date, task, changetodaytask } = req.body;
 
     try {
         // Check if the user exists
@@ -393,14 +390,14 @@ app.post("/update-todaytask", async (req, res) => {
         if (!userPlanData) {
             return res.status(404).json("Plan not found");
         }
-        
+
         // Check if any entry in todaytask exists
         if (userPlanData.todaytask.length > 0) {
             console.log(userPlanData.todaytask[0].currentdate);
             console.log(date)
             console.log(changetodaytask)
-            if(userPlanData.todaytask[0].currentdate !== date || changetodaytask == true){
-                if(userPlanData.todaytask[0].currentdate !== date){
+            if (userPlanData.todaytask[0].currentdate !== date || changetodaytask == true) {
+                if (userPlanData.todaytask[0].currentdate !== date) {
                     console.log(`new day buddy`)
                 }
                 // console.log(`updating`)
@@ -468,7 +465,7 @@ app.post("/update-checkedarray", async (req, res) => {
 
 app.post("/delete-plan", async (req, res) => {
     const { username, planId } = req.body; // planId is the _id of the plan you want to delete
-    
+
     try {
         // Find the user's plan and remove the specific plan by its ID
         const updatedUserPlan = await UserPlan.findOneAndUpdate(
@@ -488,13 +485,14 @@ app.post("/delete-plan", async (req, res) => {
     }
 });
 
-app.get("/days",async(req,res) =>{
-    try{
+app.get("/days", async (req, res) => {
+    try {
         const days = await Days.find();
         const months = await Months.find();
-        return res.json({"days":days,"months":months});
+        // console.log(days, months)
+        return res.json({ "days": days, "months": months });
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
         return res.json("Error at getting days data.")
     }
@@ -502,167 +500,163 @@ app.get("/days",async(req,res) =>{
 
 app.post("/delete-activity", async (req, res) => {
     const { username, planname, dailyId, activityId } = req.body;
-  
-    try {
-      const updatedUserPlan = await UserPlan.findOneAndUpdate(
-        { username: username, "plans.name": planname, "plans.daily._id": dailyId }, // Find the user, plan, and specific daily entry
-        { $pull: { "plans.$[].daily.$[].activities": { _id: activityId } } }, // Remove the activity with the matching _id
-        { new: true }  // Return the updated document
-      );
-  
-      if (!updatedUserPlan) {
-        return res.status(404).json("Activity not found");
-      }
-  
-      res.json("Deleted activity successfully");
-    } catch (error) {
-      console.error(error);
-      res.status(500).json("Error deleting activity");
-    }
-  });
-  
-app.post("/add-daily", async (req, res) => {
-    const { username, planname, day, nameac, acdescription,color,textcolor,modifyacname,timestart,timeend,important } = req.body;
-    try {
-      const findUser = await UserPlan.findOne({ username: username }).exec();
-      
-      if (!findUser) {
-        return res.status(404).json("User not found");
-      }
-  
-      const findplan = findUser.plans.find(plan => plan.name === planname);
-      
-      if (!findplan) {
-        return res.status(404).json("Plan not found");
-      }
-  
-      const existingDay = findplan.daily.find(d => d.day === day);
-      
-      if (existingDay) {
-        // If the day exists, update activities
-        const existingActivity = existingDay.activities.find(activity => activity.name === nameac);
-        if (!existingActivity) {
-          existingDay.activities.push({ name: nameac, description: acdescription,color:color,textcolor:textcolor,timestart:timestart,timeend:timeend,important:important });
-        } else {
-          // If the activity already exists, update the description
-          if(modifyacname){
-            existingActivity.name = modifyacname
-          }
-          existingActivity.description = acdescription;
-          existingActivity.color = color;
-          existingActivity.textcolor = textcolor;
-          existingActivity.timestart = timestart;
-          existingActivity.timeend = timeend; 
-          existingActivity.important = important;
-        }
-      } else {
-        // If the day does not exist, create a new entry
-        findplan.daily.push({ day, activities: [{ name: nameac, description: acdescription,color:color,textcolor:textcolor,timestart:timestart,timeend:timeend,important:important }] });
-      }
-  
-      // Save the updated user plan
-      await findUser.save();
-  
-      res.json(`Action Updated!`);
-    } catch (error) {
-      console.log(error);
-      res.status(500).json("Error at adding activity");
-    }
-  });
-  
 
-app.get("/employees" , verifyJwt, verifyrole(ROLE_LIST.User,ROLE_LIST.Editor,ROLE_LIST.Admin) ,async (req,res) =>{
+    try {
+        const updatedUserPlan = await UserPlan.findOneAndUpdate(
+            { username: username, "plans.name": planname, "plans.daily._id": dailyId }, // Find the user, plan, and specific daily entry
+            { $pull: { "plans.$[].daily.$[].activities": { _id: activityId } } }, // Remove the activity with the matching _id
+            { new: true }  // Return the updated document
+        );
+
+        if (!updatedUserPlan) {
+            return res.status(404).json("Activity not found");
+        }
+
+        res.json("Deleted activity successfully");
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Error deleting activity");
+    }
+});
+
+app.post("/add-daily", async (req, res) => {
+    const { username, planname, day, nameac, acdescription, color, textcolor, modifyacname, timestart, timeend, important } = req.body;
+    try {
+        const findUser = await UserPlan.findOne({ username: username }).exec();
+
+        if (!findUser) {
+            return res.status(404).json("User not found");
+        }
+
+        const findplan = findUser.plans.find(plan => plan.name === planname);
+
+        if (!findplan) {
+            return res.status(404).json("Plan not found");
+        }
+
+        const existingDay = findplan.daily.find(d => d.day === day);
+
+        if (existingDay) {
+            // If the day exists, update activities
+            const existingActivity = existingDay.activities.find(activity => activity.name === nameac);
+            if (!existingActivity) {
+                existingDay.activities.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important });
+            } else {
+                // If the activity already exists, update the description
+                if (modifyacname) {
+                    existingActivity.name = modifyacname
+                }
+                existingActivity.description = acdescription;
+                existingActivity.color = color;
+                existingActivity.textcolor = textcolor;
+                existingActivity.timestart = timestart;
+                existingActivity.timeend = timeend;
+                existingActivity.important = important;
+            }
+        } else {
+            // If the day does not exist, create a new entry
+            findplan.daily.push({ day, activities: [{ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important }] });
+        }
+
+        // Save the updated user plan
+        await findUser.save();
+
+        res.json(`Action Updated!`);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json("Error at adding activity");
+    }
+});
+
+
+app.get("/employees", verifyJwt, verifyrole(ROLE_LIST.User, ROLE_LIST.Editor, ROLE_LIST.Admin), async (req, res) => {
     const employees = await Employee.find();
-    if(!employees) return res.status(204).json({"message" : "No employees found"});
+    if (!employees) return res.status(204).json({ "message": "No employees found" });
     res.json(employees);
 })
 
-app.post("/employees",verifyJwt, verifyrole(ROLE_LIST.Editor,ROLE_LIST.Admin),async (req,res) =>{
-    const {firstname,lastname} = req.body;
-    if(!firstname || !lastname) return res.status(401).json("firstname and lastname are required!");
-    try{
+app.post("/employees", verifyJwt, verifyrole(ROLE_LIST.Editor, ROLE_LIST.Admin), async (req, res) => {
+    const { firstname, lastname } = req.body;
+    if (!firstname || !lastname) return res.status(401).json("firstname and lastname are required!");
+    try {
         const result = await Employee.create({
             firstname: firstname,
             lastname: lastname,
         })
         await result.save();
         res.json(result);
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.status(401).json("Error while creating new employee")
     }
 })
-app.put("/employees",verifyJwt,verifyrole(ROLE_LIST.Editor,ROLE_LIST.Admin),async (req,res) =>{
-    const {id,newfirstname,newlastname} = req.body;
-    if(!id || !newfirstname || !newlastname) return res.status(401).json({"message":"id,newfirstname,newlastname are required!"});
-    const findemployee = await Employee.findOne({_id:id}).exec();
-    if(!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
+app.put("/employees", verifyJwt, verifyrole(ROLE_LIST.Editor, ROLE_LIST.Admin), async (req, res) => {
+    const { id, newfirstname, newlastname } = req.body;
+    if (!id || !newfirstname || !newlastname) return res.status(401).json({ "message": "id,newfirstname,newlastname are required!" });
+    const findemployee = await Employee.findOne({ _id: id }).exec();
+    if (!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
     findemployee.firstname = newfirstname;
     findemployee.lastname = newlastname;
     await findemployee.save();
     res.json(findemployee);
 })
 
-app.delete("/employees",verifyJwt,verifyrole(ROLE_LIST.Admin),async (req,res) =>{
-    const {id} = req.body;
-    if(!id) return res.status(401).json({"Message":"id is required!"});
-    const findemployee = await Employee.findOne({_id: id}).exec();
-    if(!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
-    await Employee.deleteOne({_id:id});
-    res.json({"Message":`Deleted Employee ${findemployee.firstname}`});
+app.delete("/employees", verifyJwt, verifyrole(ROLE_LIST.Admin), async (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(401).json({ "Message": "id is required!" });
+    const findemployee = await Employee.findOne({ _id: id }).exec();
+    if (!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
+    await Employee.deleteOne({ _id: id });
+    res.json({ "Message": `Deleted Employee ${findemployee.firstname}` });
 })
 
-app.post("/auth/checkrefreshtoken",async(req,res) =>{
-    const {refreshtoken} = req.body;
-    if(refreshtoken){
+app.post("/auth/checkrefreshtoken", async (req, res) => {
+    const { refreshtoken } = req.body;
+    if (refreshtoken) {
         jwt.verify(
             refreshtoken,
             process.env.REFRESH_TOKEN_SECRET,
-            (err,decoded) => {
-                if(err) return (res.status(403).res.json({"message":"The token is not matched!"}));
-                res.json({"user":decoded.Userinfo.username,"role":decoded.Userinfo.role})
+            (err, decoded) => {
+                if (err) return (res.status(403).res.json({ "message": "The token is not matched!" }));
+                res.json({ "user": decoded.Userinfo.username })
             }
         )
     }
 })
 
-app.post("/auth/login",async (req,res) => {
-    // console.log(`logging in`)
-    const {username,pwd} = req.body;
-    if(!username || !pwd) return res.status(400).json("Email and Password are required")
-    const Founduser = await User.findOne({username: username}).exec();
-    if(!Founduser) return res.status(401).json("No user Found")
-    const match = await bcrypt.compare(pwd,Founduser.password)
-    if(match){
-        const role = Founduser.role;
+app.post("/auth/login", async (req, res) => {
+    const { username, pwd } = req.body;
+    if (!username || !pwd) return res.status(400).json("Email and Password are required")
+    const Founduser = await User.findOne({ username: username }).exec();
+    if (!Founduser) return res.status(401).json("No user Found")
+    const match = await bcrypt.compare(pwd, Founduser.password)
+    if (match) {
+        console.log(match)
         // const USERNAME = Founduser.username;
         // const accessToken = jwt.sign(
         //     {
         //         "Userinfo":{
         //             "username":Founduser.username,
-        //             "role":role
         //         }
         //     },
         //     process.env.ACCESS_TOKEN_SECRET, //5ca2cd
         //     {expiresIn:"60s"},
         // );
-        // console.log(`role : ${role}`);
         const refreshToken = jwt.sign(
             {
-                "Userinfo":{
-                    "username":Founduser.username,
-                    "role":role
+                "Userinfo": {
+                    "username": Founduser.username,
                 }
             },
             process.env.REFRESH_TOKEN_SECRET,
-            {expiresIn:"24d"},
+            { expiresIn: "24d" },
         )
         Founduser.refreshToken = refreshToken;
         const result = await Founduser.save();
         // console.log(result);
-        res.cookie("jwt",refreshToken,{httpOnly:false,Samesite:"Strict",maxAge:7*24 * 60 *60 *1000,secure:false}) 
+        res.cookie("jwt", refreshToken, { httpOnly: false, Samesite: "Strict", maxAge: 7 * 24 * 60 * 60 * 1000, secure: false })
         res.json("Login successfully");
-    }else{
+    } else {
         res.json("Wrong password!");
     }
 })
@@ -735,7 +729,7 @@ app.get('/protected', verifyToken, protectedRoute);
 
 const PORT = process.env.PORT || 3000;
 
-mongoose.connection.on('open', () =>{
+mongoose.connection.on('open', () => {
     // console.log(`Connected to MongoDB`);
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

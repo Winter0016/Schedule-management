@@ -4,34 +4,33 @@ import { useNavigate } from 'react-router-dom';
 import images from '../images';
 
 export const Login = () => {
-    const { setlogin, setloggedusername,loggedusername,setusernamerole,usernamerole } = useContext(Usercontext);
+    const { setlogin, setloggedusername, loggedusername } = useContext(Usercontext);
     const [password, setPassword] = useState('');
-    const [username,setUsername] = useState('');
-    const {active, setActive} = useContext(Usercontext);
-    const [forgetpwd,setforgetpwd] = useState(false);
-    const [emailreset,setemailreset] = useState("");
-    const [showpassword,setshowpassword] = useState(false);
+    const [username, setUsername] = useState('');
+    const { active, setActive } = useContext(Usercontext);
+    const [forgetpwd, setforgetpwd] = useState(false);
+    const [emailreset, setemailreset] = useState("");
+    const [showpassword, setshowpassword] = useState(false);
     const navigate = useNavigate(); // If you need to navigate after login
-    const [loginerror,setloginerror] = useState("");
+    const [loginerror, setloginerror] = useState("");
 
     const checkrefreshtoken = async (myrefreshtoken) => {
         try {
-          console.log(`running checkrefreshtoken`);
-          const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
-            method: "POST",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshtoken: myrefreshtoken })
-          });
-          const data = await response.json();
-          
-          if(data.user && data.role){
-            setlogin(true);
-            setloggedusername(data.user);
-            setusernamerole(data.role);
-            navigate("/dashboard/plan")
-          }
-        }catch(error){
-          console.log(error)
+            console.log(`running checkrefreshtoken`);
+            const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshtoken: myrefreshtoken })
+            });
+            const data = await response.json();
+
+            if (data.user) {
+                setlogin(true);
+                setloggedusername(data.user);
+                navigate("/dashboard/plan")
+            }
+        } catch (error) {
+            console.log(error)
         }
     };
 
@@ -48,7 +47,7 @@ export const Login = () => {
             });
             const data = await response.json();
             console.log(data);
-            if(data == "Wrong password!" || data == "No user Found"){
+            if (data == "Wrong password!" || data == "No user Found") {
                 throw new Error("Wrong password or username!");
             }
             setloginerror("");
@@ -60,27 +59,27 @@ export const Login = () => {
         }
     };
 
-    const [loadingreset,setloadingreset] = useState(false);
-    const [sendresult,setsendresult] = useState("");
-    const resetpassword = async (e) =>{
+    const [loadingreset, setloadingreset] = useState(false);
+    const [sendresult, setsendresult] = useState("");
+    const resetpassword = async (e) => {
         // console.log(`running reset password`)
         e.preventDefault();
         setloadingreset(true);
-        try{
-            if(!emailreset){
+        try {
+            if (!emailreset) {
                 throw new Error("Please enter the email for reset password!")
             }
-            const response = await fetch ('http://localhost:3000/reset-password',{
+            const response = await fetch('http://localhost:3000/reset-password', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
-                body : JSON.stringify({email : emailreset}),
-                credentials : 'include'
+                body: JSON.stringify({ email: emailreset }),
+                credentials: 'include'
             })
             const data = await response.json();
             // console.log(data)
             setsendresult(data);
             setloadingreset(false);
-        }catch(error){
+        } catch (error) {
             console.log(error)
             setsendresult(error.message);
             setloadingreset(false);
@@ -134,7 +133,7 @@ export const Login = () => {
                                                 placeholder="Password"
                                                 className="appearance-none relative block min-w-full pl-3 pr-[4rem] py-3 border border-gray-700 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                                 required
-                                                type={showpassword ? "text":"password"}
+                                                type={showpassword ? "text" : "password"}
                                                 name="password"
                                                 id="password"
                                                 value={password}
@@ -143,10 +142,10 @@ export const Login = () => {
                                             <button
                                                 type="button"
                                                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 text-gray-400 z-10"
-                                                onClick={() => {setshowpassword(!showpassword)}}
+                                                onClick={() => { setshowpassword(!showpassword) }}
                                             >
                                                 {showpassword ? 'Hide' : 'Show'}
-                                            </button>                                            
+                                            </button>
                                         </div>
                                     </div>
 
@@ -162,7 +161,7 @@ export const Login = () => {
                                         </div>
 
                                         <div className="text-sm">
-                                            <a className="font-medium text-indigo-500 hover:text-indigo-400 hover:cursor-pointer" onClick={()=>{setforgetpwd(true)}}>Forgot your password?</a>
+                                            <a className="font-medium text-indigo-500 hover:text-indigo-400 hover:cursor-pointer" onClick={() => { setforgetpwd(true) }}>Forgot your password?</a>
                                         </div>
                                     </div>
                                     {
@@ -183,18 +182,18 @@ export const Login = () => {
                                                         onChange={(e) => setemailreset(e.target.value)} // Update password state
                                                     />
                                                     <div className='flex gap-3'>
-                                                        <button className='text-gray-300 py-2 px-7 rounded-full bg-black' onClick={()=>{setforgetpwd(false)}}>
+                                                        <button className='text-gray-300 py-2 px-7 rounded-full bg-black' onClick={() => { setforgetpwd(false) }}>
                                                             Back
                                                         </button>
                                                         <button className='px-7 py-2 rounded-full bg-blue-500' disabled={loadingreset} onClick={resetpassword}>
                                                             Send
                                                         </button>
                                                     </div>
-                                                    { sendresult && <><div className='text-white'>{sendresult}</div> </>}
+                                                    {sendresult && <><div className='text-white'>{sendresult}</div> </>}
                                                 </div>
-                                           
+
                                             </>
-                                        ):(
+                                        ) : (
                                             <>
                                                 <div>
                                                     <button
@@ -205,7 +204,7 @@ export const Login = () => {
                                                         Sign In
                                                     </button>
                                                     {loginerror && <div className='text-red-700'>{loginerror}</div>}
-                                                </div> 
+                                                </div>
                                             </>
                                         )
                                     }
@@ -213,7 +212,7 @@ export const Login = () => {
                             </div>
                             <div className="px-8 py-4 bg-gray-700 text-center">
                                 <span className="text-gray-400">Don't have an account?</span>
-                                <a className="font-medium text-indigo-500 hover:text-indigo-400 hover:cursor-pointer" onClick={()=> {navigate("/register");setActive("signup")}}>Sign up</a>
+                                <a className="font-medium text-indigo-500 hover:text-indigo-400 hover:cursor-pointer" onClick={() => { navigate("/register"); setActive("signup") }}>Sign up</a>
                             </div>
                         </div>
                     </div>

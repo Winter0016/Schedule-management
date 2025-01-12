@@ -20,28 +20,27 @@ import axios from 'axios';
 export const Usercontext = createContext("");
 
 function App() {
-  const [loggedusername, setloggedusername] = useState(); 
+  const [loggedusername, setloggedusername] = useState();
   const [login, setlogin] = useState(loggedusername ? true : false);
-  const [usernamerole, setusernamerole] = useState();
   const [active, setActive] = useState('');
-  const [open,setopen] = useState(false);
-  const [plan,setplan] = useState();
-  const[deleteac,setdeleteac] = useState("");
-  const [addacresult,setaddacresult] = useState();
-  const [deleteresult,setdeleteresult] = useState("");
-  const [createresult,setcreateresult] = useState("");
-  const[loadingplan,setloadingplan] = useState(false);
+  const [open, setopen] = useState(false);
+  const [plan, setplan] = useState();
+  const [deleteac, setdeleteac] = useState("");
+  const [addacresult, setaddacresult] = useState();
+  const [deleteresult, setdeleteresult] = useState("");
+  const [createresult, setcreateresult] = useState("");
+  const [loadingplan, setloadingplan] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
-  const [addschedule, setaddschedule] = useState(""); 
-  const [addtask,setaddtask] = useState(false);
-  const [updatetaskresult,setupdatetaskresult] = useState("")
+  const [addschedule, setaddschedule] = useState("");
+  const [addtask, setaddtask] = useState(false);
+  const [updatetaskresult, setupdatetaskresult] = useState("")
 
   const today = new Date();
   const [isLoading, setIsLoading] = useState(true); // Loading state
 
   const date = today.getDate();
   let days = today.getDay(); // Get the current day number (0 = Sunday, 1 = Monday, etc.)
-  if(days ==0){
+  if (days == 0) {
     days = 7
   }
   const months = today.getMonth();
@@ -49,16 +48,16 @@ function App() {
 
   function reversetranslateDay(daystring) {
     switch (daystring) {
-        case "Monday": return 1;
-        case "Tuesday": return 2;
-        case "Wednesday": return 3;
-        case "Thursday": return 4;
-        case "Friday": return 5;
-        case "Saturday": return 6;
-        case "Sunday": return 7;
-        default: return "Invalid day string"; // In case the input is not between 1 and 7
+      case "Monday": return 1;
+      case "Tuesday": return 2;
+      case "Wednesday": return 3;
+      case "Thursday": return 4;
+      case "Friday": return 5;
+      case "Saturday": return 6;
+      case "Sunday": return 7;
+      default: return "Invalid day string"; // In case the input is not between 1 and 7
     }
-}
+  }
 
 
 
@@ -71,115 +70,114 @@ function App() {
         body: JSON.stringify({ refreshtoken: myrefreshtoken })
       });
       const data = await response.json();
-      
-      if(data.user && data.role){
+
+      if (data.user) {
         setlogin(true);
         setloggedusername(data.user);
-        setusernamerole(data.role);
       }
-    }catch(error){
+    } catch (error) {
       console.log(error)
-    }finally{
+    } finally {
       setIsLoading(false)
     }
   };
 
   useEffect(() => {
-       
-      //in canse document cookie store more than one :
 
-      // example cookie data : const sampleCookieString = "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw0; key=some_value; another_cookie=test";
+    //in canse document cookie store more than one :
 
-      // const cookieParts = document.cookie.split('; ');
-      // for (const part of cookieParts) {
-      //   const [key, value] = part.split('=');
-      //   if (key === 'jwt') {
-      //     console.log(`jwt = ${value}`);
-      //   }
-      //   if (key === 'key') {
-      //     console.log(`key = ${value}`);
-      //   }
-      // }
+    // example cookie data : const sampleCookieString = "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw0; key=some_value; another_cookie=test";
 
-      ///////
-      // console.log(document.cookie.substring("jwt".length + 1));
-      if(!document.cookie){
-        setIsLoading(false)
-      }else{
-        checkrefreshtoken(document.cookie.substring("jwt".length + 1));
-      }
+    // const cookieParts = document.cookie.split('; ');
+    // for (const part of cookieParts) {
+    //   const [key, value] = part.split('=');
+    //   if (key === 'jwt') {
+    //     console.log(`jwt = ${value}`);
+    //   }
+    //   if (key === 'key') {
+    //     console.log(`key = ${value}`);
+    //   }
+    // }
+
+    ///////
+    // console.log(document.cookie.substring("jwt".length + 1));
+    if (!document.cookie) {
+      setIsLoading(false)
+    } else {
+      checkrefreshtoken(document.cookie.substring("jwt".length + 1));
+    }
   }, []);
 
-  const [updatetoday,setupdatetoday] = useState("")
+  const [updatetoday, setupdatetoday] = useState("")
   const updateTodayTask = async () => {
     let currentChangetodaytask = false; // Use a local variable
     let taskarray = []; // Initialize taskarray here
     // console.log(`updating`)
     try {
-        // Fetch the latest plan data first
-        if (plan && selectedOption) {
-            // console.log(`plan and selected option`)
-            plan.forEach((data2) => {
-                if (data2.name === selectedOption) {
-                  // currentChangetodaytask = true // use to overrun the current( only for developing )
-                  if(addtask == true){
-                    currentChangetodaytask = true;
-                  }
-                  data2.my_task.forEach((task)=>{
-                    if(task.deadline.split("/")[0] == (months + 1).toString() && task.deadline.split("/")[1] == date.toString()){
-                      taskarray.push({
-                        name:task.name,
-                        description:task.description,
-                        timestart: task.timestart,
-                        timeend: task.timeend,
-                        color: task.color,
-                        textcolor: task.textcolor,
-                        important: true,
-                        task:true,
-                      })
-                    }
-                  })
-                    data2.daily.forEach((activity) => {
-                      if (activity.day === days) {
-                        if (reversetranslateDay(addschedule) == days) {
-                          // console.log(`changetodaytask due to addschedule`)
-                          currentChangetodaytask = true; // Update the local variable
-                        }
-                        activity.activities.forEach((active) => {
-                          taskarray.push({
-                            name: active.name,
-                            description: active.description,
-                            timestart: active.timestart,
-                            timeend: active.timeend,
-                            color: active.color,
-                            textcolor: active.textcolor,
-                            important: active.important,
-                          });
-                        });
-                      }
-                    });
+      // Fetch the latest plan data first
+      if (plan && selectedOption) {
+        // console.log(`plan and selected option`)
+        plan.forEach((data2) => {
+          if (data2.name === selectedOption) {
+            // currentChangetodaytask = true // use to overrun the current( only for developing )
+            if (addtask == true) {
+              currentChangetodaytask = true;
+            }
+            data2.my_task.forEach((task) => {
+              if (task.deadline.split("/")[0] == (months + 1).toString() && task.deadline.split("/")[1] == date.toString()) {
+                taskarray.push({
+                  name: task.name,
+                  description: task.description,
+                  timestart: task.timestart,
+                  timeend: task.timeend,
+                  color: task.color,
+                  textcolor: task.textcolor,
+                  important: true,
+                  task: true,
+                })
+              }
+            })
+            data2.daily.forEach((activity) => {
+              if (activity.day === days) {
+                if (reversetranslateDay(addschedule) == days) {
+                  // console.log(`changetodaytask due to addschedule`)
+                  currentChangetodaytask = true; // Update the local variable
                 }
+                activity.activities.forEach((active) => {
+                  taskarray.push({
+                    name: active.name,
+                    description: active.description,
+                    timestart: active.timestart,
+                    timeend: active.timeend,
+                    color: active.color,
+                    textcolor: active.textcolor,
+                    important: active.important,
+                  });
+                });
+              }
             });
+          }
+        });
 
-            const response = await axios.post('http://localhost:3000/update-todaytask', {
-                username: loggedusername,
-                plan: selectedOption,
-                date: `${years}-${months}-${date}`,
-                task: taskarray,
-                changetodaytask: currentChangetodaytask // Use the local variable here
-            });
-            setupdatetoday(response.data)
-            // console.log(response.data);
-        }
-        // Reset taskarray and currentChangetodaytask to default values
-        taskarray = []; // Reset taskarray
-        currentChangetodaytask = false; // Reset currentChangetodaytask
-
+        const response = await axios.post('http://localhost:3000/update-todaytask', {
+          username: loggedusername,
+          plan: selectedOption,
+          date: `${years}-${months}-${date}`,
+          task: taskarray,
+          changetodaytask: currentChangetodaytask // Use the local variable here
+        });
+        setupdatetoday(response.data)
         // console.log(response.data);
+      }
+      // Reset taskarray and currentChangetodaytask to default values
+      taskarray = []; // Reset taskarray
+      currentChangetodaytask = false; // Reset currentChangetodaytask
+
+      // console.log(response.data);
     } catch (error) {
-        console.error('Error updating today task:', error.response ? error.response.data : error.message);
+      console.error('Error updating today task:', error.response ? error.response.data : error.message);
     }
-};
+  };
 
   const sortactivity = (activityarray) => {
     return activityarray.sort((a, b) => parseInt(a.timestart.split(":")[0]) - parseInt(b.timestart.split(":")[0]));
@@ -192,47 +190,47 @@ function App() {
     }));
   };
 
-  const getplan = async(req,res) =>{
-    try{
-        setloadingplan(true)
-        const response = await fetch("http://localhost:3000/plan",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({username:loggedusername}),
-        })
-        const data = await response.json()
-        // console.log(`${JSON.stringify(data)}`);
-        // console.log(data[1].name)
-        if(data){
-          const updatedplan = data.plans.map((key) => ({
-            ...key,
-            daily: finddaily(key.daily),
-          }));
-          setplan(updatedplan);
-        }
-        setloadingplan(false);
-    }catch(error){
-        setloadingplan(false);
-        console.log(error);
+  const getplan = async (req, res) => {
+    try {
+      setloadingplan(true)
+      const response = await fetch("http://localhost:3000/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: loggedusername }),
+      })
+      const data = await response.json()
+      // console.log(`${JSON.stringify(data)}`);
+      // console.log(data[1].name)
+      if (data) {
+        const updatedplan = data.plans.map((key) => ({
+          ...key,
+          daily: finddaily(key.daily),
+        }));
+        setplan(updatedplan);
+      }
+      setloadingplan(false);
+    } catch (error) {
+      setloadingplan(false);
+      console.log(error);
     }
   }
-  useEffect(()=>{
-    if(loggedusername){
+  useEffect(() => {
+    if (loggedusername) {
       // console.log(`running getplan`)
       getplan();
-    }  
-  },[loggedusername,addacresult,deleteac,deleteresult,createresult,updatetoday,selectedOption,updatetaskresult])
+    }
+  }, [loggedusername, addacresult, deleteac, deleteresult, createresult, updatetoday, selectedOption, updatetaskresult])
 
-  useEffect(()=>{
+  useEffect(() => {
     // console.log(`loadingplan is changing`)
-    if(loadingplan == false){
+    if (loadingplan == false) {
       // console.log(`running updatetodaytask`)
       updateTodayTask();
     }
-  },[loadingplan])
+  }, [loadingplan])
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, usernamerole, setusernamerole,open,setopen,plan,deleteac,setdeleteac,addacresult,setaddacresult,setdeleteresult,createresult,setcreateresult,getplan,loadingplan,setSelectedOption,selectedOption,date,years,months,days,addschedule,setaddschedule,reversetranslateDay,setaddtask,addtask,updatetaskresult,setupdatetaskresult }}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, loadingplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult }}>
         <BrowserRouter>
           <Header />
           {isLoading == true ? (

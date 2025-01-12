@@ -1,94 +1,93 @@
-import React, { useState, useContext,useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Usercontext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import images from '../images';
 
 export const Register = () => {
-    const { setlogin, setrefreshtoken, setloggedusername,loggedusername,active,setActive } = useContext(Usercontext);
+    const { setlogin, setrefreshtoken, setloggedusername, loggedusername, active, setActive } = useContext(Usercontext);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [email,setEmail] = useState('');
+    const [email, setEmail] = useState('');
     const navigate = useNavigate();
-    const [chooserole,setchooserole] = useState("Owner");
-    const [loginresult,setloginresult] =useState("");
-    const [error,seterror] = useState("");
-    const [loading,setloading] = useState(false);
-    const [showpassword,setshowpassword] = useState(false);
+    const [loginresult, setloginresult] = useState("");
+    const [error, seterror] = useState("");
+    const [loading, setloading] = useState(false);
+    const [showpassword, setshowpassword] = useState(false);
     const [usernameAvailable, setUsernameAvailable] = useState(null);
 
 
-    const checkusername = async (USERNAME) =>{
+    const checkusername = async (USERNAME) => {
         // console.log(`Checking user ${USERNAME}`);
-        try{
+        try {
             const response = await fetch('http://localhost:3000/auth/check-username', {
                 method: "POST",
-                headers:{ "Content-Type": "application/json"},
-                body: JSON.stringify({username:USERNAME}),
-                credentials:"include"
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: USERNAME }),
+                credentials: "include"
             });
-            if(!response.ok){
+            if (!response.ok) {
                 throw new Error("Error checking username");
             }
             const data = await response.json();
             // console.log(data);
-            setUsernameAvailable( data.exists ? "taken" : "available");
+            setUsernameAvailable(data.exists ? "taken" : "available");
         }
-        catch(error){
+        catch (error) {
             // console.log(error);
             setUsernameAvailable(error.message);
         }
-    } 
-    const [emailavailable,setemailavailable] = useState("");
-    const checkemail = async (EMAIL) =>{
+    }
+    const [emailavailable, setemailavailable] = useState("");
+    const checkemail = async (EMAIL) => {
         // console.log(`Checking user ${USERNAME}`);
-        try{
+        try {
             const response = await fetch('http://localhost:3000/auth/check-email', {
                 method: "POST",
-                headers:{ "Content-Type": "application/json"},
-                body: JSON.stringify({email:EMAIL}),
-                credentials:"include"
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: EMAIL }),
+                credentials: "include"
             });
-            if(!response.ok){
+            if (!response.ok) {
                 throw new Error("Error checking username");
             }
             const data = await response.json();
             // console.log(data);
-            setemailavailable( data.exists ? "taken" : "available");
+            setemailavailable(data.exists ? "taken" : "available");
         }
-        catch(error){
+        catch (error) {
             // console.log(error);
             setemailavailable(error.message);
         }
-    } 
+    }
 
-    useEffect(() =>{
-        if(username){
+    useEffect(() => {
+        if (username) {
             // console.log("username changing");
             checkusername(username)
         }
-    },[username])
-    useEffect(() =>{
-        if(email){
+    }, [username])
+    useEffect(() => {
+        if (email) {
             checkemail(email)
         }
-    },[email])
+    }, [email])
 
     const registerfunction = async (e) => {
         e.preventDefault(); // Prevents the default form submission behavior
         try {
-             if(!username || !password || !email){
+            if (!username || !password || !email) {
                 throw new Error("Please fill everything from the form!");
             }
             setloading(true);
             const response = await fetch('http://localhost:3000/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username, password: password,email:email,role:chooserole }), // Use username and password from state
+                body: JSON.stringify({ username: username, password: password, email: email }), // Use username and password from state
                 credentials: 'include' // Include credentials (cookies)
             });
 
             if (!response.ok) {
-                if(response.status == 409){
+                if (response.status == 409) {
                     throw new Error(`User ${username} is already exited`)
                 }
                 throw new Error('Registered failed');
@@ -102,9 +101,8 @@ export const Register = () => {
             setUsername("");
             setEmail("");
             setPassword("");
-            setchooserole("");
             setloading(false);
-        } 
+        }
         catch (error) {
             console.error('Error:', error);
             seterror(error.message);
@@ -120,7 +118,7 @@ export const Register = () => {
         height: '100vh',
         overflow: 'auto', // or 'scroll' for always showing the scrollbar
     };
-    
+
 
     return (
         <div style={backgroundStyle}>
@@ -139,7 +137,7 @@ export const Register = () => {
                                 <div className="p-8">
                                     <h2 className="text-center text-3xl font-extrabold text-white">Register</h2>
                                     <p className="mt-4 text-center text-gray-400">Sign up now and get full access to our app</p>
-                                    <form method="POST" className="mt-8 space-y-6"  onSubmit={registerfunction}>
+                                    <form method="POST" className="mt-8 space-y-6" onSubmit={registerfunction}>
                                         <div className="rounded-md shadow-sm">
                                             <div>
                                                 <label className="sr-only" htmlFor="username">Username</label>
@@ -156,9 +154,9 @@ export const Register = () => {
                                                 {
                                                     usernameAvailable && username ? (
                                                         <>
-                                                            <div className={`${usernameAvailable == "taken" ? "text-red-500" : "text-green-500"} pl-2 text-sm`}>{usernameAvailable}</div>                               
+                                                            <div className={`${usernameAvailable == "taken" ? "text-red-500" : "text-green-500"} pl-2 text-sm`}>{usernameAvailable}</div>
                                                         </>
-                                                    ):(
+                                                    ) : (
                                                         <>
 
                                                         </>
@@ -181,9 +179,9 @@ export const Register = () => {
                                                 {
                                                     emailavailable && email ? (
                                                         <>
-                                                            <div className={`${emailavailable == "taken" ? "text-red-500" : "text-green-500"} pl-2 text-sm`}>{emailavailable}</div>                               
+                                                            <div className={`${emailavailable == "taken" ? "text-red-500" : "text-green-500"} pl-2 text-sm`}>{emailavailable}</div>
                                                         </>
-                                                    ):(
+                                                    ) : (
                                                         <>
 
                                                         </>
@@ -205,7 +203,7 @@ export const Register = () => {
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={()=> {setshowpassword(!showpassword)}}
+                                                    onClick={() => { setshowpassword(!showpassword) }}
                                                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 z-10 text-gray-400"
                                                 >
                                                     {showpassword ? 'Hide' : 'Show'}
@@ -231,7 +229,7 @@ export const Register = () => {
                                                 <>
                                                     <div className='text-center text-green-500 font-bold text-lg'>{loginresult}</div>
                                                 </>
-                                            ): error && (
+                                            ) : error && (
                                                 <>
                                                     <div className='text-red-500 font-bold text-lg'>{error}</div>
                                                 </>
@@ -241,10 +239,10 @@ export const Register = () => {
                                 </div>
                                 <div className="px-8 py-4 bg-gray-700 text-center">
                                     <span className="text-gray-400">Already have an account?</span>
-                                    <a className="font-medium text-indigo-500 hover:text-indigo-400 hover:cursor-pointer" onClick={()=> {navigate("/login");setActive("login")}}>Login</a>
+                                    <a className="font-medium text-indigo-500 hover:text-indigo-400 hover:cursor-pointer" onClick={() => { navigate("/login"); setActive("login") }}>Login</a>
                                 </div>
                             </div>
-                        </div>      
+                        </div>
                     </>
                 )
             }

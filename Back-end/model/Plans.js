@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 const FinishedtaskSchema = new Schema({
   name: {
     type: String,
-    default: null, 
+    default: null,
   },
   date: {
     type: String,
-    default: null, 
+    default: null,
   },
 });
 
@@ -23,29 +23,29 @@ const IncommingtaskSchema = new Schema({
     type: String, // Description of the activity
     default: '',
   },
-  color:{
-    type:String,
-    default:"",
-  },
-  textcolor:{
-    type: String,
-    default:"",
-  },
-  timestart:{
-    type:String,
-    default:"",
-  },
-  timeend:{
+  color: {
     type: String,
     default: "",
   },
-  deadline:{
-    type:String,
-    default:""
+  textcolor: {
+    type: String,
+    default: "",
   },
-  status:{
-    type:String,
-    default:null
+  timestart: {
+    type: String,
+    default: "",
+  },
+  timeend: {
+    type: String,
+    default: "",
+  },
+  deadline: {
+    type: String,
+    default: ""
+  },
+  status: {
+    type: String,
+    default: null
   }
 });
 
@@ -64,25 +64,25 @@ const DailySchema = new Schema({
       type: String, // Description of the activity
       default: '',
     },
-    color:{
-      type:String,
-      default:"",
-    },
-    textcolor:{
-      type: String,
-      default:"",
-    },
-    timestart:{
-      type:String,
-      default:"",
-    },
-    timeend:{
+    color: {
       type: String,
       default: "",
     },
-    important:{
+    textcolor: {
+      type: String,
+      default: "",
+    },
+    timestart: {
+      type: String,
+      default: "",
+    },
+    timeend: {
+      type: String,
+      default: "",
+    },
+    important: {
       type: Boolean,
-      default:false,
+      default: false,
     }
   }],
 });
@@ -92,7 +92,7 @@ const todaytask = new Schema({
     type: String,
     default: null,
   },
-  task:[
+  task: [
     {
       name: {
         type: String,
@@ -102,37 +102,37 @@ const todaytask = new Schema({
         type: String,
         default: null,
       },
-      color:{
+      color: {
         type: String,
         default: null,
       },
-      textcolor:{
+      textcolor: {
         type: String,
         default: null,
       },
-      timestart:{
+      timestart: {
         type: String,
         default: null,
       },
-      timeend:{
+      timeend: {
         type: String,
         default: null,
       },
-      important:{
+      important: {
         type: Boolean,
         default: false,
       },
-      status:{
+      status: {
         type: String,
         default: null,
       },
-      dateupdated:{
-        type:String,
-        default:null,
+      dateupdated: {
+        type: String,
+        default: null,
       },
-      task:{
-        type:Boolean,
-        default:false,
+      task: {
+        type: Boolean,
+        default: false,
       },
     }
   ]
@@ -155,9 +155,9 @@ const PlanSchema = new Schema({
   finished_task: [FinishedtaskSchema], // Array of Finished tasks
   my_task: [IncommingtaskSchema], // Array of Incoming tasks
   daily: [DailySchema], // Array of Daily activities
-  timebegin:{
+  timebegin: {
     type: String,
-    default:null,
+    default: null,
   },
   todaytask: [todaytask],
 });
@@ -165,10 +165,6 @@ const PlanSchema = new Schema({
 // Define the main UserPlan schema
 const UserPlanSchema = new Schema({
   username: {
-    type: String,
-    required: true,
-  },
-  role: {
     type: String,
     required: true,
   },

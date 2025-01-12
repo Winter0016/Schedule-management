@@ -10,10 +10,6 @@ const userSchema = new Schema({
         type: String,
         required: true // corrected "require" to "required"
     },
-    role: {
-        type: String,
-        required: true // corrected "require" to "required"
-    },
     verified: {
         type: Boolean, // changed from String to Boolean
         required: true, // corrected "require" to "required"
