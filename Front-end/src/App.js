@@ -35,6 +35,11 @@ function App() {
   const [addtask, setaddtask] = useState(false);
   const [updatetaskresult, setupdatetaskresult] = useState("")
 
+  const [modify, setmodify] = useState(false);
+  const [modifyacname, setmodifyacname] = useState();
+  const [dailyid, setdailyid] = useState();
+  const [activeid, setactiveid] = useState();
+
   const today = new Date();
   const [isLoading, setIsLoading] = useState(true); // Loading state
 
@@ -108,7 +113,6 @@ function App() {
     }
   }, []);
 
-  const [updatetoday, setupdatetoday] = useState("")
   const updateTodayTask = async () => {
     let currentChangetodaytask = false; // Use a local variable
     let taskarray = []; // Initialize taskarray here
@@ -125,6 +129,7 @@ function App() {
             }
             data2.my_task.forEach((task) => {
               if (task.deadline.split("/")[0] == (months + 1).toString() && task.deadline.split("/")[1] == date.toString()) {
+                currentChangetodaytask = true;
                 taskarray.push({
                   name: task.name,
                   description: task.description,
@@ -133,12 +138,12 @@ function App() {
                   color: task.color,
                   textcolor: task.textcolor,
                   important: true,
-                  task: true,
                 })
               }
             })
             data2.daily.forEach((activity) => {
               if (activity.day === days) {
+                // console.log(reversetranslateDay(addschedule))
                 if (reversetranslateDay(addschedule) == days) {
                   // console.log(`changetodaytask due to addschedule`)
                   currentChangetodaytask = true; // Update the local variable
@@ -166,14 +171,17 @@ function App() {
           task: taskarray,
           changetodaytask: currentChangetodaytask // Use the local variable here
         });
-        setupdatetoday(response.data)
-        // console.log(response.data);
       }
       // Reset taskarray and currentChangetodaytask to default values
-      taskarray = []; // Reset taskarray
-      currentChangetodaytask = false; // Reset currentChangetodaytask
-
-      // console.log(response.data);
+      taskarray = [];
+      currentChangetodaytask = false;
+      setaddschedule("");
+      setmodify(false);
+      setaddacresult("");
+      setdailyid("");
+      setactiveid("");
+      setmodifyacname("");
+      setdeleteac("")
     } catch (error) {
       console.error('Error updating today task:', error.response ? error.response.data : error.message);
     }
@@ -219,7 +227,7 @@ function App() {
       // console.log(`running getplan`)
       getplan();
     }
-  }, [loggedusername, addacresult, deleteac, deleteresult, createresult, updatetoday, selectedOption, updatetaskresult])
+  }, [loggedusername, addacresult, deleteac, deleteresult, createresult, selectedOption, updatetaskresult])
 
   useEffect(() => {
     // console.log(`loadingplan is changing`)
@@ -230,7 +238,7 @@ function App() {
   }, [loadingplan])
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, loadingplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult }}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, loadingplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid }}>
         <BrowserRouter>
           <Header />
           {isLoading == true ? (

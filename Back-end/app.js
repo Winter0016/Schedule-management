@@ -393,8 +393,6 @@ app.post("/update-todaytask", async (req, res) => {
 
         // Check if any entry in todaytask exists
         if (userPlanData.todaytask.length > 0) {
-            console.log(userPlanData.todaytask[0].currentdate);
-            console.log(date)
             console.log(changetodaytask)
             if (userPlanData.todaytask[0].currentdate !== date || changetodaytask == true) {
                 if (userPlanData.todaytask[0].currentdate !== date) {
@@ -503,14 +501,19 @@ app.post("/delete-activity", async (req, res) => {
 
     try {
         const updatedUserPlan = await UserPlan.findOneAndUpdate(
-            { username: username, "plans.name": planname, "plans.daily._id": dailyId }, // Find the user, plan, and specific daily entry
-            { $pull: { "plans.$[].daily.$[].activities": { _id: activityId } } }, // Remove the activity with the matching _id
-            { new: true }  // Return the updated document
+            { username: username, "plans.name": planname, "plans.daily._id": dailyId },
+            { $pull: { "plans.$[].daily.$[].activities": { _id: activityId } } },
+            { new: true }
         );
 
         if (!updatedUserPlan) {
             return res.status(404).json("Activity not found");
         }
+
+        // Find the updated daily entry and update activityCount
+        const updatedDaily = updatedUserPlan.plans.find(p => p.name === planname).daily.find(d => d._id.equals(dailyId));
+        updatedDaily.activityCount = updatedDaily.activities.length;
+        await updatedUserPlan.save(); // Save the updated document
 
         res.json("Deleted activity successfully");
     } catch (error) {
@@ -537,12 +540,10 @@ app.post("/add-daily", async (req, res) => {
         const existingDay = findplan.daily.find(d => d.day === day);
 
         if (existingDay) {
-            // If the day exists, update activities
             const existingActivity = existingDay.activities.find(activity => activity.name === nameac);
             if (!existingActivity) {
                 existingDay.activities.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important });
             } else {
-                // If the activity already exists, update the description
                 if (modifyacname) {
                     existingActivity.name = modifyacname
                 }
@@ -554,11 +555,12 @@ app.post("/add-daily", async (req, res) => {
                 existingActivity.important = important;
             }
         } else {
-            // If the day does not exist, create a new entry
-            findplan.daily.push({ day, activities: [{ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important }] });
+            findplan.daily.push({ day, activities: [{ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important }], activityCount: 1 });
         }
 
-        // Save the updated user plan
+        // Update activityCount after adding or modifying activities
+        const updatedDaily = findplan.daily.find(d => d.day === day);
+        updatedDaily.activityCount = updatedDaily.activities.length;
         await findUser.save();
 
         res.json(`Action Updated!`);

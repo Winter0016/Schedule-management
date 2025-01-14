@@ -55,6 +55,10 @@ const DailySchema = new Schema({
     type: Number, // Example: 1 for Monday, 2 for Tuesday, etc.
     required: true,
   },
+  activityCount: { // Add this field
+    type: Number,
+    default: 0,
+  },
   activities: [{
     name: {
       type: String, // Name of the activity

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import images from '../images'; // Assuming 'images.island' is a valid image path
 
 export const Schedule = () => {
-  const { loggedusername, plan, deleteac, setdeleteac, addacresult, setaddacresult, date, years, months, days, open, addschedule, setaddschedule, reversetranslateDay, selectedOption, setSelectedOption } = useContext(Usercontext);
+  const { loggedusername, plan, deleteac, setdeleteac, addacresult, setaddacresult, date, years, months, days, open, addschedule, setaddschedule, reversetranslateDay, selectedOption, setSelectedOption, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid } = useContext(Usercontext);
 
   function translateMonth() {
     switch (months) {
@@ -89,10 +89,6 @@ export const Schedule = () => {
   const [deletingac, setdeletingac] = useState(false);
   const [choosecolor, setchoosecolor] = useState("#3399ff");
   const [textcolor, choosetextcolor] = useState("#e5e7eb");
-  const [modify, setmodify] = useState(false);
-  const [modifyacname, setmodifyacname] = useState();
-  const [dailyid, setdailyid] = useState();
-  const [activeid, setactiveid] = useState();
   const [important, setimportant] = useState(false);
 
 
@@ -179,21 +175,6 @@ export const Schedule = () => {
     }
   };
 
-  const clearacresult = () => {
-    setaddacresult("");
-    setdeleteac("");
-  }
-
-  useEffect(() => {
-
-    if (addacresult) {
-      const mytimeout = setTimeout(clearacresult, 2000);
-    }
-    else if (deleteac) {
-      closefunction();
-    }
-  }, [addacresult, deleteac])
-
   const deleteactivity = async () => {
     try {
       setdeletingac(true);
@@ -247,36 +228,7 @@ export const Schedule = () => {
       setPreviousEndmonth(previousendmonth)
     }
   }, [Months]);
-  //rollover4
-  // if(Endmonth){
-  //   console.log(Endmonth)
-  // }
-  // console.log(days)
 
-  const scrollContainerRef = useRef(null);
-
-  useEffect(() => {
-    const autoScroll = () => {
-      const container = scrollContainerRef.current;
-      if (container) {
-        let direction = 1; // 1 for down, -1 for up
-        let scrollTop = 0;
-        const intervalId = setInterval(() => {
-          scrollTop += 1 * direction; // Adjust speed here
-
-          if (scrollTop >= container.scrollHeight - container.clientHeight) {
-            direction = -1;
-          } else if (scrollTop <= 0) {
-            direction = 1;
-          }
-
-          container.scrollTop = scrollTop;
-        }, 10); // Adjust speed (10 milliseconds)
-
-        return () => clearInterval(intervalId);
-      }
-    };
-  }, []);
 
 
 
@@ -399,7 +351,6 @@ export const Schedule = () => {
                     <div className='text-center border-b border-gray-600 p-1'>
                       {translateDay(data.day)}
                     </div>
-
                     {data.day === days ? (
                       // rollover2
                       <div className='flex flex-col overflow-y-auto flex-grow pb-2'>
@@ -415,8 +366,35 @@ export const Schedule = () => {
                           >
                             Add Schedule
                           </button>
+                          {
+                            plan && (
+                              <>
+                                {
+                                  plan.map((Data) => (
+                                    <React.Fragment key={Data._id}>
+                                      {Data.name === selectedOption && (
+                                        <>
+                                          {Data.daily.map((ac) => (
+                                            <React.Fragment key={ac._id}>
+                                              {ac.day === days && (
+                                                <>
+                                                  <div className='px-3 py-1 rounded-full border border-blue-800 text-blue-400'>
+                                                    {ac.activityCount}
+                                                  </div>
+                                                </>
+                                              )}
+                                            </React.Fragment>
+                                          ))}
+                                        </>
+                                      )}
+                                    </React.Fragment>
+                                  ))
+                                }
+                              </>
+                            )
+                          }
                         </div>
-                        <div className='mt-3 text-sm overflow-y-auto flex flex-wrap gap-2 pl-3 hide-scrollbar flex-grow border-2'>
+                        <div className='mt-3 text-sm overflow-y-auto flex flex-wrap gap-2 pl-3 hide-scrollbar flex-grow'>
                           {plan && (
                             <>
                               {plan.map((data2) => (
@@ -506,8 +484,35 @@ export const Schedule = () => {
                           >
                             Add Schedule
                           </button>
+                          {
+                            plan && (
+                              <>
+                                {
+                                  plan.map((Data) => (
+                                    <React.Fragment key={Data._id}>
+                                      {Data.name === selectedOption && (
+                                        <>
+                                          {Data.daily.map((ac) => (
+                                            <React.Fragment key={ac._id}>
+                                              {ac.day === data.day && (
+                                                <>
+                                                  <div className='px-3 py-1 rounded-full border border-blue-800 text-blue-400'>
+                                                    {ac.activityCount}
+                                                  </div>
+                                                </>
+                                              )}
+                                            </React.Fragment>
+                                          ))}
+                                        </>
+                                      )}
+                                    </React.Fragment>
+                                  ))
+                                }
+                              </>
+                            )
+                          }
                         </div>
-                        <div className='mt-3 text-sm overflow-auto flex flex-wrap gap-2 pl-3 hide-scrollbar pr-3' ref={scrollContainerRef}>
+                        <div className='mt-3 text-sm overflow-auto flex flex-wrap gap-2 pl-3 hide-scrollbar pr-3'>
                           {plan && (
                             <>
                               {plan.map((data2) => (

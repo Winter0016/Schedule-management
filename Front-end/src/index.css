@@ -15,21 +15,3 @@
   -ms-overflow-style: none;
   /* IE and Edge */
 }
-
-
-.auto-scroll {
-  animation: scroll 10s linear infinite;
-  /* Adjust duration (10s) and speed (linear) as needed */
-}
-
-@keyframes scroll {
-  0% {
-    transform: translateY(0);
-  }
-
-  100% {
-    transform: translateY(-100%);
-  }
-
-  /* Scroll up the height of the container */
-}
