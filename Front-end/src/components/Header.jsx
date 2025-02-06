@@ -36,10 +36,9 @@ export const Header = ()=>{
         <div className='fixed w-full lg:text-lg flex justify-center flex-wrap text-sm z-10'>
             <>
                 <div className='px-5 py-2 flex gap-[4vw] items-center font-bold mt-3 rounded-full bg-customdark font-roboto flex-wrap'>
-                    <div className={`rounded-lg p-2 hover:border-b-[3px] hover:cursor-pointer text-gray-200 ${active === "main" ? "border-b-[3px] border-gray-200 border-opacity-60" : ""}`} onClick={()=> {navigate("/");handleToggle("main")}}>
+                    <div className={`rounded-lg p-2 hover:border-b-[3px] hover:cursor-pointer text-gray-200 ${active === "main" ? "border-b-[3px] border-gray-200 border-opacity-60" : ""}`} onClick={()=> {login ? navigate("/dashboard/plan") : navigate("/");handleToggle("main")}}>
                         Home
                     </div>
-                    <div className={`rounded-lg p-2 hover:border-b-[3px] hover:cursor-pointer text-gray-200 lg:block hidden ${active === "about" ? "border-b-[3px] border-gray-200 border-opacity-60" : ""}`}onClick={()=> {navigate("/");handleToggle("about")}} >About</div>
                     <div className={`rounded-lg p-2 hover:border-b-[3px] lg:block hidden hover:cursor-pointer text-gray-200 ${active === "rank" ? "border-b-[3px] border-gray-200 border-opacity-60" : ""}`}onClick={()=> {navigate("/");handleToggle("rank")}}>Music</div>
                     {
                         login ? (
@@ -52,12 +51,11 @@ export const Header = ()=>{
                                         </div>
                                         <div className="relative">
                                             <div 
-                                                className={`absolute top-1 p-2 left-0 bg-gray text-white  transform transition-all duration-500 ease-in-out w-full bg-customgray rounded-lg ${
+                                                className={`absolute top-4 p-2 left-0 bg-gray text-white  transform transition-all duration-500 ease-in-out w-full bg-gray-700 rounded-lg ${
                                                     isOpen ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 translate-y-[-20px]'
                                                 } overflow-hidden`} 
                                             >
                                                 <ul className=''>
-                                                    <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer' onClick={()=>{navigate("/dashboard/plan");setActive("");setIsOpen(false)}}>Plan</div>
                                                     <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer'>Profile</div>
                                                     {/* <div className='text-gray-200 p-2 hover:border-b-[1px] cursor-pointer'>Shop</div> */}
                                                 </ul>
@@ -73,13 +71,13 @@ export const Header = ()=>{
                                     {/* Sliding background */}
                                     <div
                                     className={`absolute top-0 left-0 w-1/2 h-full ${(active === "login" || active === "signup") ? "bg-blue-500" :""} rounded-lg transition duration-500 ease-in-out 
-                                    ${active === 'signup' ? 'translate-x-full' :(active === 'main' || active === 'rank' || active === 'about') ? " hidden" :'translate-x-0'}`}
+                                    ${active === 'signup' ? 'translate-x-full' :(active === 'main' || active === 'rank' ) ? " hidden" :'translate-x-0'}`}
                                     ></div>
 
                                     {/* Login Button */}
                                     <button
                                     className={`relative z-10 w-1/2 h-full text-white font-bold transition p-2 duration-500 
-                                    ${active === 'login' ? 'text-white' : (active === 'main' || active === 'rank' || active === 'about') ? "text-gray-400 opacity-75 hover:bg-blue-500 rounded-lg" : 'text-gray-500 opacity-70'}`}
+                                    ${active === 'login' ? 'text-white' : (active === 'main' || active === 'rank') ? "text-gray-400 opacity-75 hover:bg-blue-500 rounded-lg" : 'text-gray-500 opacity-70'}`}
                                     onClick={() => {handleToggle('login');navigate("/login")}}
                                     >
                                     Login

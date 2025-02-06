@@ -6,7 +6,7 @@ import images from '../images'; // Assuming 'images.island' is a valid image pat
 import axios from 'axios';
 
 export const Mytask = () =>{
-    const { loggedusername, plan,selectedOption,getplan,monthName,setSelectedOption, date, years, days, open,setaddtask,addtask,updatetaskresult,setupdatetaskresult } = useContext(Usercontext);    
+    const { loggedusername, plan,selectedOption,monthName,setSelectedOption, date, years, months, open,setaddtask,addtask,updatetaskresult,setupdatetaskresult,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate} = useContext(Usercontext);    
       const [checkedarray,setcheckedarray] = useState([]);
       const [updatingcheckedarray,setupdatingcheckedarray] = useState(false);
     
@@ -35,18 +35,15 @@ export const Mytask = () =>{
             console.log(data);
             setupdatingcheckedarray(false);
             setcheckedarray([]);
+            setupdatecheckedarrayresult(data);
         }catch(error){
             setcheckedarray([]);
             setupdatingcheckedarray(false);
             console.log(error);
-        }finally{
-            getplan();
         }
     }
     const [time, setTime] = useState({ hours: '', minutes: '' });
     const [time2, setTime2] = useState({ hours: '', minutes: '' });
-    const [selectedMonth, setSelectedMonth] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(null);
     
     const handleMonthChange = (e) => {
         setSelectedMonth(parseInt(e.target.value));
@@ -87,20 +84,6 @@ export const Mytask = () =>{
             }
         }
     };
-
-    const clearacresult = () => {
-        setupdatetaskresult("")
-    }
-
-    useEffect(()=>{
-
-      if (updatetaskresult == "Added task successfully!" || updatetaskresult == "Updated task successfully!") {
-        const mytimeout = setTimeout(clearacresult, 2000);
-      }
-      else if(updatetaskresult == "Deleted activity successfully"){
-        closefunction();
-      }
-    },[updatetaskresult])
           // rollover2
     const updatetask = async(e)=>{
         e.preventDefault();
@@ -161,6 +144,7 @@ export const Mytask = () =>{
             setupdatingtask(false);
         }
     }
+
     const [mytaskid,setmytaskid] = useState("");
     const deletetask = async () => {
         try {
@@ -229,7 +213,7 @@ export const Mytask = () =>{
     //
 
     const closefunction = ()=>{
-        setaddtask(false);setupdatetaskresult("");setmodify(false);setmodifyacname("")
+        setaddtask(false);setupdatetaskresult("");setmodify(false);setmodifyacname("");setSelectedMonth("");setSelectedDate("");setPreviousDate("");setPreviousMonth("");
     }
     return(
         <>
@@ -358,7 +342,7 @@ export const Mytask = () =>{
                                 <select
                                 id="options"
                                 value={selectedOption}
-                                onChange={(e) => setSelectedOption(e.target.value)}
+                                onChange={(e) => {setSelectedOption(e.target.value)}}
                                 className='text-gray-200 bg-customgray py-1 px-3 rounded-lg'
                                 >
                                 <option value="">Select a plan</option> {/* Default option */}
@@ -390,7 +374,7 @@ export const Mytask = () =>{
                             </div>
                             <div className='flex-grow overflow-auto hide-scrollbar'>
                                 {
-                                    plan && selectedOption && (
+                                    plan && selectedOption && loadingplan == false && (
                                     <>
                                         {
                                             plan.map((data) =>(
@@ -480,7 +464,7 @@ export const Mytask = () =>{
                                                                         <React.Fragment key={data2._id}>
                                                                             <div className='grid grid-cols-2'>
                                                                                 <div className='border-r-[1px] pb-3'>
-                                                                                    <div className='flex items-center'>
+                                                                                    <div className='flex items-center border-2'>
                                                                                         <div style={{ backgroundColor: `${data2.color}`, color: `${data2.textcolor}` }} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm font-bold hover:cursor-pointer`} onClick={() => {
                                                                                             setaddtask(true);
                                                                                             setacname(data2.name);
@@ -491,10 +475,12 @@ export const Mytask = () =>{
                                                                                             setdescriptionac(data2.description);
                                                                                             setSelectedMonth(data2.deadline.split("/")[0]);
                                                                                             setSelectedDate(data2.deadline.split("/")[1]);
+                                                                                            setPreviousDate(data2.deadline.split("/")[1]);
+                                                                                            setPreviousMonth(data2.deadline.split("/")[0]);
                                                                                             setmytaskid(data2._id);
                                                                                         }}>
                                                                                             {data2.name}
-                                                                                            {data2.timestart !== ':' && data2.timeend !== ':' && `(${data2.timestart}-${data2.timeend})`}
+                                                                                            {((data2.timestart !== ':') && (data2.timeend !== ':')) && `(${data2.timestart}-${data2.timeend})`}
                                                                                         </div>
                                                                                         
                                                                                     </div>

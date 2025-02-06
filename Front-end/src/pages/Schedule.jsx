@@ -167,6 +167,7 @@ export const Schedule = () => {
         setacname(modifyacname);
       }
       setaddacresult(data);
+      console.log(addacresult)
       setaddloadingac(false);
     } catch (error) {
       setaddacresult(error.message);
@@ -328,7 +329,7 @@ export const Schedule = () => {
                 <select
                   id="options"
                   value={selectedOption}
-                  onChange={(e) => setSelectedOption(e.target.value)}
+                  onChange={(e) => {setSelectedOption(e.target.value)}}
                   className='text-gray-200 bg-customgray py-1 px-3 rounded-lg'
                 >
                   <option value="">Select a plan</option> {/* Default option */}

@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { FaCalendarAlt, FaBook, FaClock, FaBrain } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Usercontext } from '../App';
 
 export const Mainpage = () => {
+  const {login,loggedusername} = useContext(Usercontext)
+
+  useEffect(()=>{
+    if(loggedusername && login){
+      navigate("/dashboard/plan");
+    }
+  },[loggedusername,login])
+  const navigate = useNavigate();
   const backgroundStyle = {
     backgroundImage: 'linear-gradient(to right, #070610, #070610)',
     minHeight: '100vh',
@@ -18,6 +28,7 @@ export const Mainpage = () => {
     { icon: FaClock, text: 'Manage Your Time', color: 'text-yellow-500' },
     { icon: FaBrain, text: 'Boost Your Productivity', color: 'text-purple-500' },
   ];
+
 
   return (
     <div style={backgroundStyle}>

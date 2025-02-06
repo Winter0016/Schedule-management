@@ -10,6 +10,10 @@ const cookieParser = require('cookie-parser');
 const mongoose = require("mongoose")
 const connectDB = require("./config/dbConn");
 const app = express();
+const speech = require('@google-cloud/speech');
+const fs = require('fs');
+const ffmpegPath = require('ffmpeg-static');
+const ffmpeg = require('fluent-ffmpeg');
 const secretKey = 'your_secret_key'; // Replace with your actual secret key
 const Employee = require("./model/Employee");
 const User = require("./model/User");
@@ -47,11 +51,6 @@ app.get('/greeting', (req, res) => {
 })
 
 
-const ROLE_LIST = {
-    "Admin": 5150,
-    "Editor": 1984,
-    "User": 2001
-}
 // const allow = [ROLE_LIST.User,ROLE_LIST.Admin];
 // console.log(allow)
 
@@ -377,6 +376,7 @@ app.post("/delete-task", async (req, res) => {
 
 app.post("/update-todaytask", async (req, res) => {
     const { username, plan, date, task, changetodaytask } = req.body;
+    console.log(`running update-todaytask`)
 
     try {
         // Check if the user exists
@@ -571,47 +571,6 @@ app.post("/add-daily", async (req, res) => {
 });
 
 
-app.get("/employees", verifyJwt, verifyrole(ROLE_LIST.User, ROLE_LIST.Editor, ROLE_LIST.Admin), async (req, res) => {
-    const employees = await Employee.find();
-    if (!employees) return res.status(204).json({ "message": "No employees found" });
-    res.json(employees);
-})
-
-app.post("/employees", verifyJwt, verifyrole(ROLE_LIST.Editor, ROLE_LIST.Admin), async (req, res) => {
-    const { firstname, lastname } = req.body;
-    if (!firstname || !lastname) return res.status(401).json("firstname and lastname are required!");
-    try {
-        const result = await Employee.create({
-            firstname: firstname,
-            lastname: lastname,
-        })
-        await result.save();
-        res.json(result);
-    } catch (err) {
-        console.log(err);
-        res.status(401).json("Error while creating new employee")
-    }
-})
-app.put("/employees", verifyJwt, verifyrole(ROLE_LIST.Editor, ROLE_LIST.Admin), async (req, res) => {
-    const { id, newfirstname, newlastname } = req.body;
-    if (!id || !newfirstname || !newlastname) return res.status(401).json({ "message": "id,newfirstname,newlastname are required!" });
-    const findemployee = await Employee.findOne({ _id: id }).exec();
-    if (!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
-    findemployee.firstname = newfirstname;
-    findemployee.lastname = newlastname;
-    await findemployee.save();
-    res.json(findemployee);
-})
-
-app.delete("/employees", verifyJwt, verifyrole(ROLE_LIST.Admin), async (req, res) => {
-    const { id } = req.body;
-    if (!id) return res.status(401).json({ "Message": "id is required!" });
-    const findemployee = await Employee.findOne({ _id: id }).exec();
-    if (!findemployee) return res.status(204).json(`No Employee matches ID ${id}`);
-    await Employee.deleteOne({ _id: id });
-    res.json({ "Message": `Deleted Employee ${findemployee.firstname}` });
-})
-
 app.post("/auth/checkrefreshtoken", async (req, res) => {
     const { refreshtoken } = req.body;
     if (refreshtoken) {
@@ -684,6 +643,67 @@ app.get("/auth/logout", async (req, res) => {
     res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
     return res.status(200).json({ "message": `User ${Founduser.username} has logged out` });
 });
+
+
+// Creates a client with the service account key
+const client = new speech.SpeechClient({
+    keyFilename: './private/gen-lang-client-0624281144-f9b849b4cb7a.json' // Change this to your service account JSON file path
+});
+
+async function convertToMono(inputFile, outputFile) {
+    return new Promise((resolve, reject) => {
+        ffmpeg(inputFile)
+            .setFfmpegPath(ffmpegPath)
+            .audioChannels(1) // Set to mono
+            .toFormat('wav') // Output format
+            .on('end', () => {
+                console.log('Conversion to mono completed.');
+                resolve();
+            })
+            .on('error', (err) => {
+                console.error('Error during conversion:', err);
+                reject(err);
+            })
+            .save(outputFile);
+    });
+}
+
+async function transcribeAudio() {
+    const inputFileName = './private/harvard.wav'; // Original audio file
+    const outputFileName = './private/harvard_mono.wav'; // Converted mono audio file
+
+    // Convert audio to mono
+    await convertToMono(inputFileName, outputFileName);
+
+    // Read the converted audio file and convert it to a Buffer
+    const file = fs.readFileSync(outputFileName);
+    const audioBytes = file.toString('base64');
+
+    // The audio file's encoding, sample rate in hertz, and BCP-47 language code
+    const audio = {
+        content: audioBytes,
+    };
+
+    const config = {
+        encoding: 'LINEAR16', // Change this based on your audio file format
+        sampleRateHertz: 44100, // Change this based on your audio file sample rate
+        languageCode: 'en-US', // Change this to your desired language code
+    };
+
+    const request = {
+        audio: audio,
+        config: config,
+    };
+
+    // Detects speech in the audio file
+    const [response] = await client.recognize(request);
+    const transcription = response.results
+        .map(result => result.alternatives[0].transcript)
+        .join('\n');
+    console.log(`Transcription: ${transcription}`);
+}
+
+// Call the function to transcribe audio
 
 
 app.post('/login', (req, res) => {
