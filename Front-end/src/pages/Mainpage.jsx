@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { Usercontext } from '../App';
 
 export const Mainpage = () => {
-  const {login,loggedusername} = useContext(Usercontext)
+  const {login,loggedusername,setActive} = useContext(Usercontext)
 
   useEffect(()=>{
+    setActive("main");
     if(loggedusername && login){
       navigate("/dashboard/plan");
     }
@@ -32,7 +33,7 @@ export const Mainpage = () => {
 
   return (
     <div style={backgroundStyle}>
-      <div className="text-center text-white max-w-3xl">
+      <div className="text-center text-white max-w-3xl relative">
         <motion.h1 
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}

@@ -1,20 +1,30 @@
 // app.js
 require('dotenv').config();
 
+const multer = require('multer');
+const path = require('path');
+
 const bcrypt = require("bcrypt");
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
+
+const nodemailer = require('nodemailer');
+
 const mongoose = require("mongoose")
 const connectDB = require("./config/dbConn");
+
 const app = express();
+
 const speech = require('@google-cloud/speech');
 const fs = require('fs');
 const ffmpegPath = require('ffmpeg-static');
+const ffprobePath = require('ffprobe-static').path; // Use ffprobe-static to get the path
 const ffmpeg = require('fluent-ffmpeg');
+
 const secretKey = 'your_secret_key'; // Replace with your actual secret key
+
 const Employee = require("./model/Employee");
 const User = require("./model/User");
 const UserPlan = require("./model/Plans");
@@ -327,6 +337,7 @@ app.post("/update-task", async (req, res) => {
 
         if (modifyacname) {
             if (!existtask) {
+                console.log(`task not exist in modification : ${nameac}`)
                 return res.status(404).json("Task not found for modification");
             }
             existtask.description = acdescription;
@@ -374,6 +385,27 @@ app.post("/delete-task", async (req, res) => {
     }
 });
 
+app.post("/deletefinishedtask", async (req, res) => {
+    const {username,planname,finishedtask_id} = req.body;
+    try{
+        const userPlan = await UserPlan.findOne({ username: username }).exec();
+        if (!userPlan) {
+            return res.status(404).json("User  not found");
+        }
+
+        // Check if the plan exists
+        const userPlanData = userPlan.plans.find(p => p.name === planname);
+        if (!userPlanData) {
+            return res.status(404).json("Plan not found");
+        } 
+        userPlanData.finished_task = userPlanData.finished_task.filter(myfinishedtask => myfinishedtask._id.toString() !== finishedtask_id.toString());
+        await userPlan.save();
+        res.json("Delete finished tasks sucessfully!");
+    }catch(error){
+        console.log(error);
+    }
+})
+
 app.post("/update-todaytask", async (req, res) => {
     const { username, plan, date, task, changetodaytask } = req.body;
     console.log(`running update-todaytask`)
@@ -398,6 +430,13 @@ app.post("/update-todaytask", async (req, res) => {
                 if (userPlanData.todaytask[0].currentdate !== date) {
                     console.log(`new day buddy`)
                 }
+                task.forEach((Task) =>{
+                    userPlanData.todaytask[0].task.forEach((todaytask)=>{
+                        if(todaytask.name === Task.name){
+                            Task.status = todaytask.status;
+                        }
+                    })
+                })
                 // console.log(`updating`)
                 // console.log(`task :${JSON.stringify(task)}`)
                 userPlanData.todaytask[0] = { currentdate: date, task: task };
@@ -417,15 +456,15 @@ app.post("/update-todaytask", async (req, res) => {
     }
 });
 
+
 app.post("/update-checkedarray", async (req, res) => {
-    const { username, plan, checkedArray } = req.body; // checkedArray contains the _id of each task
-    // console.log(username, plan, checkedArray);
+    const { username, plan, checkedArray, day, month, date, year } = req.body; // checkedArray contains the _id of each task
 
     try {
         // Check if the user exists
         const userPlan = await UserPlan.findOne({ username: username }).exec();
         if (!userPlan) {
-            return res.status(404).json("User not found");
+            return res.status(404).json("User  not found");
         }
 
         // Check if the plan exists
@@ -436,23 +475,42 @@ app.post("/update-checkedarray", async (req, res) => {
 
         // Check if todaytask exists
         if (userPlanData.todaytask.length > 0) {
-            // Assuming you want to update the first todaytask entry
             const todayTask = userPlanData.todaytask[0]; // Get the first todaytask entry
+            const my_task = userPlanData.my_task;
 
             // Update the task array based on checkedArray
-            todayTask.task.forEach(task => {
-                // Check if the task's _id is in the 
-                // console.log(task.name);
-                if (checkedArray.includes(task.name)) {
-                    task.status = "Finished"; // Update the status to true
-                }
+            checkedArray.forEach(item => {
+                todayTask.task.forEach(todaytask => {
+                    if (todaytask.name === item.Name) {
+                        todaytask.status = "Finished"; // Update the task status
+                        
+                        // Push to finished_task if the task is marked as finished
+                        if (item.Task === true) { // Adjust this condition based on your data structure
+                            if (!userPlanData.finished_task) {
+                                userPlanData.finished_task = []; // Initialize if it doesn't exist
+                            }
+                            const findfinishedtask = my_task.find(mytask => mytask.name === item.Name);
+                            userPlanData.finished_task.push({
+                                name: item.Name, // Assuming you want to push the name
+                                date: `${day}, ${month + 1}/${date}/${year}`,
+                                deadline:findfinishedtask.deadline,
+                                description: findfinishedtask.description,
+                                timestart:findfinishedtask.timestart,
+                                timeend:findfinishedtask.timeend,
+                                color:findfinishedtask.color,
+                                textcolor:findfinishedtask.textcolor
+                            });
+                            userPlanData.my_task = userPlanData.my_task.filter(mytask => mytask._id.toString() !== findfinishedtask._id.toString());
+                        }
+                    }
+                });
             });
+
+            // Save the updated user plan
+            await userPlan.save(); // Save the parent document
         } else {
             return res.status(404).json("No todaytask found for this plan");
         }
-
-        // Save the updated user plan
-        await userPlan.save();
 
         res.json("Checked array updated successfully!");
     } catch (error) {
@@ -643,18 +701,148 @@ app.get("/auth/logout", async (req, res) => {
     res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
     return res.status(200).json({ "message": `User ${Founduser.username} has logged out` });
 });
+const today = new Date();
+const date = today.getDate();
+let days = today.getDay(); // Get the current day number (0 = Sunday, 1 = Monday, etc.)
+if (days == 0) {
+  days = 7
+}
+const months = today.getMonth();
+const years = today.getFullYear();
 
+// console.log(`${days}, ${months}/${date} ${years}`);
+const testingGeminiAPI = async() =>{
+    const findUser = await UserPlan.findOne({ username: "Napoleon" }).exec();
 
-// Creates a client with the service account key
-const client = new speech.SpeechClient({
-    keyFilename: './private/gen-lang-client-0624281144-f9b849b4cb7a.json' // Change this to your service account JSON file path
+    if (!findUser) {
+        return res.status(404).json("User not found");
+    }
+
+    const findplan = findUser.plans.find(plan => plan.name === "Study plan");
+    queryGemini("Khi nào tôi có lịch đá banh?","Napoleon",findplan);
+}
+// testingGeminiAPI();
+
+const queryGemini = async (userQuery, username, PLANS) => {
+    const apikey = process.env.GEMINI_API_KEY;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apikey}`;
+
+    try {
+        const requestBody = {
+            contents: [
+                {
+                    parts: [
+                        {
+                            text: `
+Bạn là trợ lý AI giúp người dùng lấy lịch trình và nhiệm vụ hàng ngày của họ, bạn sẽ xưng hô dưới dạng em và gọi người dùng là anh chị. Dưới đây là lịch trình và nhiệm vụ của người dùng ở định dạng JSON:
+
+Trước khi vô câu hỏi tôi cần bạn đặc biệt Lưu ý, không được bỏ qua điều này :
+day:1 => thứ hai
+day:2 => thứ ba
+day:3 => thứ tư
+day:4 => thứ năm
+day:5 => thứ sáu
+day:6 => thứ bảy
+day:7 => chủ nhật
+### **User's Schedule (JSON)**
+\`\`\`json
+${JSON.stringify(PLANS, null, 2)}
+\`\`\`
+Bạn kiểm tra mục daily và my_task trong json data:
+- Ở mục daily bạn dựa trên loại "day" để trả lời câu hỏi[
+day: 4 // nghĩa là thứ 5(Lưu ý :day:1 là thứ hai, day:2 là thứ ba, day:3 là thứ tư,day:4 là thứ 5, day:5 là thứ sáu, day:6 là thứ bảy, day:7 là chủ nhật),
+),
+activityCount:3,
+activities:[] // các hoạt động trong thứ 5, đây là nơi mà bạn sẽ lấy thông tin cho câu trả lời.
+]
+- Ở mục my_task,bạn dựa trên loại "deadline" để trả lời câu hỏi:[ {... deadline:3/9 //nghĩa tháng 3 ngày 9}]
+- Thời gian thực của Người dùng: day ${days} (Lưu ý :day 1 là thứ hai, day 2 là thứ ba, day 3 là thứ tư,day 4 là thứ 5, day 5 là thứ sáu, day 6 là thứ bảy, day 7 là chủ nhật),) , tháng ${months+1}, ngày ${date}, năm ${years}
+- Khi người dùng hỏi vào mốc thứ từ thứ 2 => chủ nhật, dựa vào thời gian thực của người dùng mà tôi cung cấp bạn phải biết thứ đó là tháng mấy ngày mấy. Ví dụ: người dùng hỏi vào mốc chủ nhật tuần này, dựa trên mốc thới gian của người dùng bạn phải biết chủ nhật tuần này là tháng 3 ngày 9. Sau khi nhận biết xong bạn dựa vào dữ liệu của day ở daily có phải là 7 không,nếu đúng thì trích xuất tất cả name trong array activities và deadline của my_task có phải là 3/9 không nếu đúng thì trích xuất name, sau đó gộp hai chúng lại để trả lời người dùng.
+- trả lời người dùng bằng tiếng việt như mặt đối mặt, bạn không cần phải cung cấp thông tin trong json data vì người dùng sẽ không biết, chỉ cung cấp nhưng thông tin cần thiết và có sẵn, trả lời ngắn gọn bằng 1 hàng không xuống dòng.
+- Câu hỏi của khách hàng là : ${userQuery}`
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const response = await axios.post(url, requestBody, {
+            headers: { "Content-Type": "application/json" },
+        });
+
+        console.log(response.data.candidates?.[0]?.content?.parts?.[0]?.text || "No response");
+        return response.data.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+
+    } catch (error) {
+        console.error("Error calling Gemini API:", error.response?.data || error.message);
+        return "Respond error";
+    }
+};
+app.post("/ask", async (req, res) => {
+    const {username,planname,question} = req.body;
+    const findUser = await UserPlan.findOne({ username: username }).exec();
+
+    if (!findUser) {
+        return res.status(404).json("User not found");
+    }
+    const findplan = findUser.plans.find(plan => plan.name === planname);
+    if(!findplan){
+        return res.status(404).json("Plan not found");
+    }
+    const reply = await queryGemini(question, username, findplan);
+    res.json(reply);
+  });
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'audio/'); 
+    },
+    filename: (req, file, cb) => {
+        cb(null, `received${path.extname(file.originalname)}`); 
+    }
 });
 
+const upload = multer({ storage: storage });
+
+app.post('/voice-receive', upload.single('audio'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+    console.log('File received:', req.file);
+
+    const result = await transcribeAudio(req.file.path).catch(console.error);
+
+    if (result !== "failed") {
+        return res.json(result);
+    } else {
+        return res.status(500).json("Transcription failed");
+    }
+});
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath); 
+
+const client = new speech.SpeechClient({
+    keyFilename: './private/gen-lang-client-0624281144-f9b849b4cb7a.json'
+});
+
+async function getSampleRate(inputFile) {
+    return new Promise((resolve, reject) => {
+        ffmpeg.ffprobe(inputFile, (err, metadata) => {
+            if (err) {
+                return reject(err);
+            }
+            const sampleRate = metadata.streams[0].sample_rate; // Get the sample rate from the metadata
+            resolve(parseInt(sampleRate, 10)); // Return the sample rate as an integer
+        });
+    });
+}
+
+// Function to convert audio to mono
 async function convertToMono(inputFile, outputFile) {
     return new Promise((resolve, reject) => {
         ffmpeg(inputFile)
-            .setFfmpegPath(ffmpegPath)
-            .audioChannels(1) // Set to mono
+            .audioChannels(1) // Set to mono by setting all sounds into 1 channel
             .toFormat('wav') // Output format
             .on('end', () => {
                 console.log('Conversion to mono completed.');
@@ -668,12 +856,13 @@ async function convertToMono(inputFile, outputFile) {
     });
 }
 
-async function transcribeAudio() {
-    const inputFileName = './private/harvard.wav'; // Original audio file
-    const outputFileName = './private/harvard_mono.wav'; // Converted mono audio file
+async function transcribeAudio(inputFileName) {
+    const outputFileName = './audio/receive_mono.wav'; 
 
-    // Convert audio to mono
     await convertToMono(inputFileName, outputFileName);
+
+    // Get the sample rate of the original audio file
+    const sampleRateHertz = await getSampleRate(inputFileName);
 
     // Read the converted audio file and convert it to a Buffer
     const file = fs.readFileSync(outputFileName);
@@ -685,9 +874,9 @@ async function transcribeAudio() {
     };
 
     const config = {
-        encoding: 'LINEAR16', // Change this based on your audio file format
-        sampleRateHertz: 44100, // Change this based on your audio file sample rate
-        languageCode: 'en-US', // Change this to your desired language code
+        encoding: 'LINEAR16', 
+        sampleRateHertz: sampleRateHertz, 
+        languageCode: 'vi-VN', 
     };
 
     const request = {
@@ -695,16 +884,18 @@ async function transcribeAudio() {
         config: config,
     };
 
-    // Detects speech in the audio file
-    const [response] = await client.recognize(request);
-    const transcription = response.results
-        .map(result => result.alternatives[0].transcript)
-        .join('\n');
-    console.log(`Transcription: ${transcription}`);
+    try {
+        const [response] = await client.recognize(request);
+        const transcription = response.results
+            .map(result => result.alternatives[0].transcript)
+            .join('\n');
+        console.log(`Transcription: ${transcription}`);
+        return transcription;
+    } catch (error) {
+        console.error('Error during transcription:', error);
+        return "failed";
+    }
 }
-
-// Call the function to transcribe audio
-
 
 app.post('/login', (req, res) => {
     const { username, password, age } = req.body;

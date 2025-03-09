@@ -86,7 +86,7 @@ export const Plan = () => {
   }
 
   return (
-    <div className='w-screen h-screen overflow-auto bg-customgray relative'>
+    <div className='w-full h-screen overflow-auto bg-customgray relative'>
       <div className={`${open ? "max-w-7xl ml-auto" : "max-w-7xl m-auto"} pt-[8rem]`}>
         <div className='w-full overflow-auto h-[37rem] bg-customdark text-gray-200 rounded-3xl font-roboto'>
           <>

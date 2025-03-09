@@ -22,7 +22,6 @@ export const Sidebar = () => {
           <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={() => navigate("plan")}>Plan</div>
           <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={() => navigate("schedule")}>Daily Schedule</div>
           <div className='cursor-pointer hover:bg-gray-700 p-3' onClick={() => navigate("mytask")}>Task</div>
-          <div className='cursor-pointer hover:bg-gray-700 p-3'>Finished Task</div>
           <div className='cursor-pointer hover:bg-gray-700 p-3'>Music List</div>
         </div>
       </div>

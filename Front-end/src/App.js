@@ -15,6 +15,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { Schedule } from "./pages/Schedule";
 import { Mytask } from "./pages/Mytask";
 import { Loading } from "./components/Loadingpage";
+import { Chat } from "./components/Chat";
+import { Layout } from "./components/Layout";
 import axios from 'axios';
 
 export const Usercontext = createContext("");
@@ -46,11 +48,14 @@ function App() {
 
   const [addtask, setaddtask] = useState(false);
   const [updatetaskresult, setupdatetaskresult] = useState("")
-      const [selectedMonth, setSelectedMonth] = useState("");
+      const [selectedMonth, setSelectedMonth] = useState();
       const [selectedDate, setSelectedDate] = useState("");
       const [previousMonth, setPreviousMonth] = useState("");
       const [previousDate, setPreviousDate] = useState("");
+      const [modifyupdatetask, setmodifyupdatetask] = useState(false);
+      const [modifyacnametask, setmodifyacnametask] = useState();
   const [updatecheckedarrayresult,setupdatecheckedarrayresult] = useState("");
+  const [deletefinishedtaskResult,setdeletefinishedtaskResult] = useState("");
 
 
   const today = new Date();
@@ -142,7 +147,7 @@ function App() {
             console.log(selectedDate);
             if((selectedDate == date && selectedMonth ==(months + 1)) || (previousDate == date && previousMonth == (months + 1))) {
               currentchangetodaytask = true;
-              console.log(`modified task`)
+              console.log(`modified task todays => currentchange is true`)
             }
             data2.my_task.forEach((task) => {
               if (task.deadline.split("/")[0] == (months + 1).toString() && task.deadline.split("/")[1] == date.toString()) {
@@ -155,6 +160,7 @@ function App() {
                   color: task.color,
                   textcolor: task.textcolor,
                   important: true,
+                  task:true,
                 })
               }
             })
@@ -197,6 +203,9 @@ function App() {
       console.log(taskarray);
       currentchangetodaytask = false;
 
+      setcreateresult("")
+      setdeleteresult("")
+
       setaddschedule("");
       setmodify(false);
       setaddacresult("");
@@ -205,8 +214,18 @@ function App() {
       setmodifyacname("");
       setdeleteac("")
 
-      setaddtask(false);setupdatetaskresult("");setmodify(false);setmodifyacname("");setSelectedMonth("");setSelectedDate("");setPreviousDate("");setPreviousMonth("");
+      setaddtask(false);
+      setupdatetaskresult("");
+      setmodifyupdatetask(false);
+      setmodifyacnametask("");
+      setSelectedMonth("");
+      setSelectedDate("");
+      setPreviousDate("");
+      setPreviousMonth("");
       taskarray = [];
+      setupdatecheckedarrayresult("");
+
+      setdeletefinishedtaskResult("");
     }
   };
 
@@ -258,11 +277,11 @@ function App() {
 
 // Use useEffect to call handleUpdateTasks when needed
 useEffect(() => {
-    if (updatecheckedarrayresult !== "" || updatetaskresult !== "" || addacresult !== "" || deleteac !== "" || createresult !== "" || deleteresult !== "") {
+    if (updatecheckedarrayresult !== "" || updatetaskresult !== "" || addacresult !== "" || deleteac !== "" || createresult !== "" || deleteresult !== "" || deletefinishedtaskResult !== "") {
         console.log(updatetaskresult)
         handleUpdateTasks(); // Call the new function
     }
-}, [selectedOption, loggedusername,updatecheckedarrayresult,updatetaskresult,addacresult,deleteac]);
+}, [selectedOption, loggedusername,updatecheckedarrayresult,updatetaskresult,addacresult,deleteac,,createresult,deleteresult,deletefinishedtaskResult]);
 
 useEffect(()=>{
   if(loggedusername !== ""){
@@ -280,7 +299,7 @@ useEffect(()=>{
 
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate }}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate,modifyupdatetask, setmodifyupdatetask,modifyacnametask, setmodifyacnametask,setdeletefinishedtaskResult}}>
         <BrowserRouter>
           <Header />
           {isLoading == true ? (
@@ -291,7 +310,7 @@ useEffect(()=>{
               <Route path="/reset-password" element={<Resetpassword />} />
 
               {/* Protected Route for /plan */}
-              <Route path="/dashboard" element={<Sidebar></Sidebar>}>
+              <Route path="/dashboard" element={<Layout></Layout>}>
                 <Route index element={<Navigate to="/dashboard/404" />} /> {/* Redirect to 404 if just /dashboard */}
                 <Route path="plan" element={
                   <ProtectedRoute loggedusername={loggedusername}>

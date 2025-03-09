@@ -7,7 +7,9 @@ import images from '../images'; // Assuming 'images.island' is a valid image pat
 export const Schedule = () => {
   const { loggedusername, plan, deleteac, setdeleteac, addacresult, setaddacresult, date, years, months, days, open, addschedule, setaddschedule, reversetranslateDay, selectedOption, setSelectedOption, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid } = useContext(Usercontext);
 
-  function translateMonth() {
+  let startingdays = 0;
+
+  function translateMonth(months) {
     switch (months) {
       case 0: return "January";
       case 1: return "February";
@@ -25,7 +27,7 @@ export const Schedule = () => {
     }
   }
 
-  const monthName = translateMonth(); // Returns "May"
+  const monthName = translateMonth(months); // Returns "May"
 
   function translateDay(dayNumber) {
     switch (dayNumber) {
@@ -227,6 +229,7 @@ export const Schedule = () => {
       }
       setEndmonth(endmonth);
       setPreviousEndmonth(previousendmonth)
+      // console.log(previousendmonth)
     }
   }, [Months]);
 
@@ -237,7 +240,7 @@ export const Schedule = () => {
     <div className='w-full h-screen overflow-auto bg-customgray relative'>
       {addschedule && (
         <>
-          <div className='absolute w-screen h-screen bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
+          <div className='absolute w-full h-screen bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
             <div className='w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark relative max-h-[44rem] overflow-auto hide-scrollbar'>
               <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => closefunction()} alt="" />
               <div className='text-center break-words text-customblue text-2xl'>{addschedule}'s Schedule</div>
@@ -353,7 +356,7 @@ export const Schedule = () => {
                       {translateDay(data.day)}
                     </div>
                     {data.day === days ? (
-                      // rollover2
+                      // first modifyicators
                       <div className='flex flex-col overflow-y-auto flex-grow pb-2'>
                         <div className='flex flex-wrap gap-2 items-center mt-1'>
                           <div className='pl-3'>{date}</div>
@@ -379,9 +382,26 @@ export const Schedule = () => {
                                             <React.Fragment key={ac._id}>
                                               {ac.day === days && (
                                                 <>
-                                                  <div className='px-3 py-1 rounded-full border border-blue-800 text-blue-400'>
-                                                    {ac.activityCount}
-                                                  </div>
+                                                  {
+                                                    (function invokeImmediately(){ // first way: ( ( ()=>{} ) ) , sencond way: ( function *any name you want*(){} ) 
+                                                      let truactivitycount = 0;
+
+                                                      Data.my_task.forEach((task) => {
+                                                        if (
+                                                          task.deadline.split("/")[1] === date.toString() &&
+                                                          task.deadline.split("/")[0] === (months + 1).toString()
+                                                        ) {
+                                                          truactivitycount++;
+                                                        }
+                                                      });
+
+                                                      return (
+                                                        <div className='px-3 py-1 rounded-full border border-blue-800 text-blue-400'>
+                                                          {ac.activityCount + truactivitycount} {/* Display the total count */}
+                                                        </div>
+                                                      );
+                                                    })() //Immediately Invoked Function Expression (Advance method learned from chatgpt )
+                                                  }
                                                 </>
                                               )}
                                             </React.Fragment>
@@ -472,11 +492,17 @@ export const Schedule = () => {
                         </div>
                       </div>
                     ) : (
-                      //rollover3
+                      //Second Modificators
                       <div className='flex flex-col overflow-y-auto flex-grow pb-2'>
                         <div className='flex flex-wrap gap-2 items-center mt-1'>
                           <div className='pl-3'>
-                            {data.day < days ? (date - (days - data.day)) <= 0 ? PreviousEndmonth + (date - (days - data.day)) : (date - (days - data.day)) : (date + (data.day - days)) < Endmonth ? (date + (data.day - days)) : ""}
+                            {data.day < days ? (date - (days - data.day)) <= 0 ? `${PreviousEndmonth + (date - (days - data.day))}(${translateMonth(months -1)})` : (date - (days - data.day)) : (date + (data.day - days)) <= Endmonth ? (date + (data.day - days)) : function PastEndMonth(){
+                              const monthName = translateMonth(months + 1); // Returns "May"
+                              startingdays++;
+                              return(
+                                <>{startingdays}({monthName})</>
+                              )
+                            }()}
                           </div>
                           <button
                             className='py-1 px-2 rounded-xl text-customblue border border-customblue hover:bg-customblue hover:text-white'
@@ -497,9 +523,26 @@ export const Schedule = () => {
                                             <React.Fragment key={ac._id}>
                                               {ac.day === data.day && (
                                                 <>
-                                                  <div className='px-3 py-1 rounded-full border border-blue-800 text-blue-400'>
-                                                    {ac.activityCount}
-                                                  </div>
+                                                  {
+                                                    (function invokeImmediately(){ // first way: ( ( ()=>{} ) ) , sencond way: ( function *any name you want*(){} ) 
+                                                      let truactivitycount = 0;
+
+                                                      Data.my_task.forEach((task) => {
+                                                        if (
+                                                          Number(task.deadline.split("/")[1]) == (data.day < days ? (date - (days - data.day)) <= 0 ? PreviousEndmonth + (date - (days - data.day)) : (date - (days - data.day)) : (date + (data.day - days)) < Endmonth ? (date + (data.day - days)) : "") &&
+                                                          Number(task.deadline.split("/")[0]) == (data.day < days ? (date - (days - data.day)) <= 0 ? months : months + 1 : (date + (data.day - days)) < Endmonth ? months + 1 : "")
+                                                        ) {
+                                                          truactivitycount++;
+                                                        }
+                                                      });
+
+                                                      return (
+                                                        <div className='px-3 py-1 rounded-full border border-blue-800 text-blue-400'>
+                                                          {ac.activityCount + truactivitycount}
+                                                        </div>
+                                                      );
+                                                    })() //Immediately Invoked Function Expression (Advance method learned from chatgpt )
+                                                  }
                                                 </>
                                               )}
                                             </React.Fragment>

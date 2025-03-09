@@ -4,13 +4,43 @@ const Schema = mongoose.Schema;
 // Define the Finishedtask schema
 const FinishedtaskSchema = new Schema({
   name: {
+    required: true,
     type: String,
     default: null,
   },
   date: {
+    required: true,
     type: String,
     default: null,
   },
+  deadline: {
+    required: true,
+    type: String,
+    default: null,
+  },
+  description: {
+    type: String,
+    default: null,
+  },
+  timestart: {
+    type: String,
+    default: null,
+  },
+  timeend: {
+    type: String,
+    default: null,
+  },
+  color: {
+    required: true,
+    type: String,
+    default: null,
+  },
+  textcolor: {
+    required: true,
+    type: String,
+    default: null,
+  },
+  
 });
 
 // Define the Incommingtask schema

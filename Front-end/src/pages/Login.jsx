@@ -27,6 +27,7 @@ export const Login = () => {
             if (data.user) {
                 setlogin(true);
                 setloggedusername(data.user);
+                setActive("main");
                 navigate("/dashboard/plan")
             }
         } catch (error) {
