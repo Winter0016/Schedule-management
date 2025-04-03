@@ -7,7 +7,7 @@ export const Chat = () => {
     const [showchat, setshowchat] = useState(false);
     const [messages, setMessages] = useState([
         // { text: "Hello!", sender: "user" },
-        { text: "Hi there! How can I help you?", sender: "responder" },
+        { text: "Xin chào!Tôi là AI giúp bạn tạo task", sender: "responder" },
     ]);
 
     const chatEndRef = useRef(null); // Reference to scroll to the bottom

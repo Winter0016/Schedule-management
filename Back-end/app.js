@@ -33,6 +33,7 @@ const Months = require("./model/Month")
 
 const SECRET_KEY = 'qwertyuiopasdfghjkl123';
 
+const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns");
 
 
 // app.use(cors());
@@ -59,6 +60,7 @@ const axios = require('axios');
 app.get('/greeting', (req, res) => {
     res.json({ message: "Bon Jour My Love!" })
 })
+
 
 
 // const allow = [ROLE_LIST.User,ROLE_LIST.Admin];
@@ -707,8 +709,47 @@ let days = today.getDay(); // Get the current day number (0 = Sunday, 1 = Monday
 if (days == 0) {
   days = 7
 }
+let dayinstring = days == 1 ? "hai" : days == 2 ? "ba" : days == 3 ? "tư" : days == 4 ? "năm" : days == 5 ? "sáu" : days == 6 ? "bảy" : days == 7 ? "chủ nhật" :""
 const months = today.getMonth();
 const years = today.getFullYear();
+
+const weekdays = {
+    "thứ hai": 1,
+    "thứ ba": 2,
+    "thứ tư": 3,
+    "thứ bốn":3,
+    "thứ năm": 4,
+    "thứ sáu": 5,
+    "thứ bảy": 6,
+    "chủ nhật": 7
+};
+function calculateDeadline(userQuery) {
+    const today = new Date();
+    let targetDate = null;
+
+    // Check for week modifiers (tuần này, tuần sau, tuần trước)
+    const isNextWeek = userQuery.includes("tuần sau");
+    const isThisWeek = userQuery.includes("tuần này");
+    const isLastWeek = userQuery.includes("tuần trước");
+
+    // Find which weekday is mentioned
+    for (const [dayName, dayNumber] of Object.entries(weekdays)) {
+        if (userQuery.includes(dayName)) {
+            let startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // Monday as start of the week
+
+            if (isNextWeek) {
+                startOfCurrentWeek = addWeeks(startOfCurrentWeek, 1);
+            } else if (isLastWeek) {
+                startOfCurrentWeek = subWeeks(startOfCurrentWeek, 1);
+            }
+
+            targetDate = addDays(startOfCurrentWeek, dayNumber - 1);
+            break;
+        }
+    }
+
+    return targetDate ? format(targetDate, "d/M") : "";
+}
 
 // console.log(`${days}, ${months}/${date} ${years}`);
 const testingGeminiAPI = async() =>{
@@ -717,15 +758,20 @@ const testingGeminiAPI = async() =>{
     if (!findUser) {
         return res.status(404).json("User not found");
     }
-
+    console.log(`thứ ${dayinstring} ngày ${date} tháng ${months + 1}`)
     const findplan = findUser.plans.find(plan => plan.name === "Study plan");
-    queryGemini("Khi nào tôi có lịch đá banh?","Napoleon",findplan);
+    queryGemini("đặt nhiệm vụ cho tôi học blockchain vào thứ sáu tuần sau lúc sáu giờ sáng đến mười một giờ sáng","Napoleon",findplan);
 }
-// testingGeminiAPI();
+testingGeminiAPI();
 
 const queryGemini = async (userQuery, username, PLANS) => {
     const apikey = process.env.GEMINI_API_KEY;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apikey}`;
+
+    const deadline = calculateDeadline(userQuery); // Compute the date from the user's input
+    if (deadline) {
+        userQuery += ` vào ngày ${deadline}`;
+    }
 
     try {
         const requestBody = {
@@ -733,33 +779,35 @@ const queryGemini = async (userQuery, username, PLANS) => {
                 {
                     parts: [
                         {
-                            text: `
-Bạn là trợ lý AI giúp người dùng lấy lịch trình và nhiệm vụ hàng ngày của họ, bạn sẽ xưng hô dưới dạng em và gọi người dùng là anh chị. Dưới đây là lịch trình và nhiệm vụ của người dùng ở định dạng JSON:
+                            text: `Bạn là một trợ lý AI giúp người ta tạo tasks và schedule activity, bạn phân tích câu hỏi của người dùng để nhận biết các key word và gửi các keyword về frontend để frontend tạo task hoặc schedule:
 
-Trước khi vô câu hỏi tôi cần bạn đặc biệt Lưu ý, không được bỏ qua điều này :
-day:1 => thứ hai
-day:2 => thứ ba
-day:3 => thứ tư
-day:4 => thứ năm
-day:5 => thứ sáu
-day:6 => thứ bảy
-day:7 => chủ nhật
-### **User's Schedule (JSON)**
-\`\`\`json
-${JSON.stringify(PLANS, null, 2)}
-\`\`\`
-Bạn kiểm tra mục daily và my_task trong json data:
-- Ở mục daily bạn dựa trên loại "day" để trả lời câu hỏi[
-day: 4 // nghĩa là thứ 5(Lưu ý :day:1 là thứ hai, day:2 là thứ ba, day:3 là thứ tư,day:4 là thứ 5, day:5 là thứ sáu, day:6 là thứ bảy, day:7 là chủ nhật),
-),
-activityCount:3,
-activities:[] // các hoạt động trong thứ 5, đây là nơi mà bạn sẽ lấy thông tin cho câu trả lời.
-]
-- Ở mục my_task,bạn dựa trên loại "deadline" để trả lời câu hỏi:[ {... deadline:3/9 //nghĩa tháng 3 ngày 9}]
-- Thời gian thực của Người dùng: day ${days} (Lưu ý :day 1 là thứ hai, day 2 là thứ ba, day 3 là thứ tư,day 4 là thứ 5, day 5 là thứ sáu, day 6 là thứ bảy, day 7 là chủ nhật),) , tháng ${months+1}, ngày ${date}, năm ${years}
-- Khi người dùng hỏi vào mốc thứ từ thứ 2 => chủ nhật, dựa vào thời gian thực của người dùng mà tôi cung cấp bạn phải biết thứ đó là tháng mấy ngày mấy. Ví dụ: người dùng hỏi vào mốc chủ nhật tuần này, dựa trên mốc thới gian của người dùng bạn phải biết chủ nhật tuần này là tháng 3 ngày 9. Sau khi nhận biết xong bạn dựa vào dữ liệu của day ở daily có phải là 7 không,nếu đúng thì trích xuất tất cả name trong array activities và deadline của my_task có phải là 3/9 không nếu đúng thì trích xuất name, sau đó gộp hai chúng lại để trả lời người dùng.
-- trả lời người dùng bằng tiếng việt như mặt đối mặt, bạn không cần phải cung cấp thông tin trong json data vì người dùng sẽ không biết, chỉ cung cấp nhưng thông tin cần thiết và có sẵn, trả lời ngắn gọn bằng 1 hàng không xuống dòng.
-- Câu hỏi của khách hàng là : ${userQuery}`
+                            - đây là câu hỏi của người dùng: ${userQuery}
+                            -Khi người ta hỏi bạn phải kiếm tra trong câu hỏi nhứng thứ sau đây:
+                                1) Xác định mục đích là tạo task hoặc schedule:
+                                    +Xác định là tạo task: khi trong câu hỏi của người dùng có từ "task" hoặc "nhiệm vụ" => purpose:"make-task"
+                                    +Xác định là tạo schedule: khi trong câu hỏi của người dùng có từ "schedule" hoặc "lịch" hoặc "lịch trình" => purpose:"make-schedule"
+                                    +Nếu bạn không xác định task hoặc schedule thì hãy bỏ trong purpose => purpose:""
+                                2) Xác định thời gian:
+                                    - Ví dụ mẫu câu:"vào lúc mười ba giờ ba mươi phút(người dùng có thể nói là một giờ chiều ba mười phút,nếu nói là một giờ chiều ba mươi phút bạn phải tự biết đó là mười ba giờ ba mươi phút) đến mười bảy giờ (người dùng có thể nói là năm giờ chiều, bạn phải tự biết đó là mười bảy giờ)(bạn phải nhận biết giờ đó am hoặc là pm và chuyển đổi nó sang giờ hai chữ số như:01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), 
+                                    + Xác định giờ và phút bắt đầu: hãy lấy các thời gian có trước ví dụ như 13h30 đến 17h30(lưu ý cái này chỉ là ví dụ để bạn hiểu) thì thời gian bắt đầu là 13:30 => time-start:13:30
+                                    + Xác định giờ và phút kết thúc: sau khi lấy thời gian bắt đầu thì bạn sẽ lấy giờ phút ở phía sau đó ví dụ như 13h30 đến 17h30(lưu ý cái này chỉ là ví dụ để bạn hiểu) thì thời gian kết thúc là 17:30 => time-end:17:30
+                                    + Nếu người dùng không cho bất kỳ thời gian nào hoặc bạn không xác định được thì bạn để trống cả hai => timestart:"" , timeend:""
+                                3) xác định ngày tháng:
+                                    - thứ ngày tháng hiện tại của người dùng là: ${format(new Date(), "EEEE, d/M")}
+                                    + xác định ngày tháng: ví dụ tháng bốn ngày ba mươi(lưu ý cái này chỉ là ví dụ để bạn hiểu) => deadline: 30/4
+                                    + sử lý các ngày tháng không hợp lệ với nhau: nếu người dùng nói ngày tháng không hợp lệ ví dụ như tháng bốn nhưng người dùng nói ngày ba mười mốt trong khi tháng bốn chỉ có ba mươi ngày(lưu ý ví dụ này chỉ để cho bạn hiểu) , suy ra bạn phải bỏ trong deadline ví ngày tháng không hợp lệ với nhau, tương tự với các ngày tháng khác => deadline:""
+                                4) xác định thứ:
+                                    + Lưu ý: thứ hai => day:1 , thứ ba => day:2, thứ tư/bốn => day:3, thứ năm => day:4 , thứ sáu => day:5 , thứ bảy => day:6 , chủ nhật => day:7
+                                    + xác định thứ như thứ hai,thứ ba , thứ tư,thứ năm,thứ sáu,thứ bảy,chủ nhật ví dụ như : đặt lịch với nội dung meeting giáo sư vào thứ bảy lúc mười lăm giờ mười => day:6 (lưu ý đây là ví dụ cho bạn hiểu)
+                                5) Xác định nội dung:
+                                    + Xác định nội dung: là những nội dung nằm phía sau từ "nội dung" ví dụ đặt lịch cho tôi vào thứ bảy với nội dung là đá banh vào lúc bảy giờ sáng thì nội dung sẽ là "đá banh" => content:"đá banh" (lưu ý đây chỉ là ví dụ cho bạn hiểu) trong nội dung không được có thời gian ngày tháng, nội dung có thể nằm giửa mục đích thời gian hoặc ngày tháng,thứ.. tuyệt đối được nhầm chúng với thứ khác
+                                    + Nếu người dùng không cho nội dung hoặc từ key word là "nội dung" thì bạn hãy bỏ trống => content: ""
+                                6) xác định mô tả:
+                                    + Xác định mô tả: là những mô tả nằm phía sau từ "mô tả" ví dụ đặt lịch cho tôi vào thứ bảy với nội dung là đá banh vào lúc bảy giờ sáng với mô tả là đá banh với phúc thì mô tả sẽ là "đá banh với phúc" => description:"banh với phúc" (lưu ý đây chỉ là ví dụ cho bạn hiểu) trong nội dung không được có thời gian ngày tháng, nội dung có thể nằm giửa mục đích thời gian hoặc ngày tháng,thứ.. tuyệt đối được nhầm chúng với thứ khác     
+                                    + Nếu người dùng không cho mô tả hoặc từ key word là "mô tả" thì bạn hãy bỏ trống => content: ""
+
+                                - Sau khi bạn xác định được hết các keyword bạn chỉ cần đơn giản trả về nội dung như mẫu không gì hơn:
+                                {purpose:"", timestart:"", timeend:"", deadline:"", day:"", content:"", description:""} `
                         }
                     ]
                 }
@@ -769,13 +817,21 @@ activities:[] // các hoạt động trong thứ 5, đây là nơi mà bạn s�
         const response = await axios.post(url, requestBody, {
             headers: { "Content-Type": "application/json" },
         });
+        
+        let geminiText = response.data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        console.log(geminiText)
+        geminiText = geminiText.replace(/```json|```/g, "").trim();
 
-        console.log(response.data.candidates?.[0]?.content?.parts?.[0]?.text || "No response");
-        return response.data.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+
+        // ✅ Ensure response is valid JSON
+        const jsonResponse = JSON.parse(geminiText);
+        
+        console.log(jsonResponse);
+        return jsonResponse;
 
     } catch (error) {
-        console.error("Error calling Gemini API:", error.response?.data || error.message);
-        return "Respond error";
+        console.error("Error parsing Gemini API response:", error.message);
+        return { error: "Invalid JSON response from Gemini" };
     }
 };
 app.post("/ask", async (req, res) => {
