@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "/static/css/main.35f371b0.css",
+    "main.js": "/static/js/main.a6d6a16f.js",
+    "static/media/island.png": "/static/media/island.1ab73cfdc7a6eabbc4a0.png",
+    "static/media/Discipliner.png": "/static/media/Discipliner.1ef8802c74ec70d190ca.png",
+    "static/media/motivationer.png": "/static/media/motivationer.6d226825a2e58eae0c66.png",
+    "static/media/Challenger.png": "/static/media/Challenger.9662a85d13945c8eaf7d.png",
+    "static/media/profile_3135715.png": "/static/media/profile_3135715.5faf09a7795d28bf5a2b.png",
+    "static/media/2191538_close_cross_delete_erase_hide_icon.png": "/static/media/2191538_close_cross_delete_erase_hide_icon.e42540cfc357f6d4fcb4.png",
+    "static/media/arrow-down.png": "/static/media/arrow-down.50c47b64acb3edfcd34d.png",
+    "index.html": "/index.html",
+    "main.35f371b0.css.map": "/static/css/main.35f371b0.css.map",
+    "main.a6d6a16f.js.map": "/static/js/main.a6d6a16f.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.35f371b0.css",
+    "static/js/main.a6d6a16f.js"
+  ]
+}

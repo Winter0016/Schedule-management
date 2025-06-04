@@ -3,8 +3,7 @@ import axios from 'axios';
 import { Usercontext } from "../App";
 
 export const Chat = () => {
-    const { loggedusername,selectedOption} = useContext(Usercontext); 
-    const [showchat, setshowchat] = useState(false);
+    const { loggedusername, plan, deleteac, setdeleteac, addacresult, setaddacresult, date, years, months, days, open, addschedule, setaddschedule, reversetranslateDay, selectedOption, setSelectedOption, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid,setupdatetaskresult,setSelectedDate,setSelectedMonth } = useContext(Usercontext);    const [showchat, setshowchat] = useState(false);
     const [messages, setMessages] = useState([
         // { text: "Hello!", sender: "user" },
         { text: "Xin chào!Tôi là AI giúp bạn tạo task", sender: "responder" },
@@ -33,8 +32,13 @@ export const Chat = () => {
                 });
                 const data = response.data;
                 console.log(data);
+                if(data.purpose == "make-schedule"){
+                    await addactivity2(data.content,data.description,data.day,"#3399ff","#e5e7eb",data.timestart,data.timeend,"");
+                }else if(data.purpose == "make-task"){
+                    await updatetask2(data.content,data.description,"#3399ff","#e5e7eb",data.timestart,data.timeend,"",data.deadline);
+                }
     
-                setMessages(prevMessages => [...prevMessages, { text: data, sender: "responder" }]);
+                setMessages(prevMessages => [...prevMessages, { text: data.response, sender: "responder" }]);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -54,7 +58,7 @@ export const Chat = () => {
     const sendAudioToServer = async (audioBlob) => {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'received.wav'); // Append the audio blob to the form data
-    
+        setloadingspeechtotext(true);
         try {
             const response = await fetch('http://localhost:3000/voice-receive', {
                 method: 'POST',
@@ -72,12 +76,13 @@ export const Chat = () => {
             setInputValue(data);
         } catch (error) {
             console.error('Error:', error);
+        }finally{
+            setloadingspeechtotext(false);
         }
     };
     const [loadingspeechtotext,setloadingspeechtotext] =useState(false);
     const startRecording = async () => {
         try {
-            setloadingspeechtotext(true);
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
@@ -98,8 +103,6 @@ export const Chat = () => {
             mediaRecorderRef.current.start();
         } catch (error) {
             console.error("Error accessing microphone:", error);
-        }finally{
-            setloadingspeechtotext(false);
         }
     };
 
@@ -118,6 +121,89 @@ export const Chat = () => {
             setturnonmic(true); // Update mic state
         }
     };
+
+    const addactivity2 = async (name,description,day,bgcolor,textcolor,timestart,timeend,modifyacname) => {
+        console.log("calling addactivity 2");
+        const translateDay = (day) => {
+            switch (parseInt(day)) {
+              case 1: return "Monday";
+              case 2: return "Tuesday";
+              case 3: return "Wednesday";
+              case 4: return "Thursday";
+              case 5: return "Friday";
+              case 6: return "Saturday";
+              case 7: return "Sunday";
+              default: return "Invalid day";
+            }
+          };
+        
+        const dayinstring = translateDay(day);
+        setaddschedule(dayinstring);  
+        if(timeend ==""){
+            timeend= ":"
+        }
+        if(timestart==""){
+            timestart=":"
+        }
+
+        try {
+          // Send the updated time fields in the request
+          const response = await fetch("http://localhost:3000/add-daily", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: loggedusername,
+              planname: selectedOption,
+              day: parseInt(day),
+              nameac: name,
+              acdescription: description,
+              color: bgcolor,
+              textcolor: textcolor,
+              modifyacname: modifyacname,
+              timestart: timestart,
+              timeend: timeend,
+              important: true,
+            }),
+          });
+    
+          const data = await response.json();
+          setaddacresult(data);
+          console.log(addacresult)
+        } catch (error) {
+          setaddacresult(error.message);
+          console.log(error);
+        }
+    };
+
+    const updatetask2 = async(name,description,bgcolor,textcolor,timestart,timeend,modifyacnametask,deadline)=>{
+        setSelectedMonth(deadline.split("/")[1]);
+        setSelectedDate(deadline.split("/")[0]);
+        if(timestart == ""){
+            timestart = ":"
+        }
+        if(timeend == ""){
+            timeend = ":"
+        }
+        try {
+            const response = await axios.post("http://localhost:3000/update-task",{
+                username: loggedusername,
+                planname: selectedOption,
+                nameac: name,
+                acdescription: description,
+                color: bgcolor,
+                textcolor: textcolor,
+                timestart: timestart,
+                timeend: timeend,
+                deadline: `${deadline.split("/")[1]}/${deadline.split("/")[0]}`,
+                modifyacname: modifyacnametask
+            })
+            const data = response.data;
+            setupdatetaskresult(data);
+        }catch(error){
+            console.log("error :",error);
+            setupdatetaskresult(error.message);
+        }
+    }
 
     return (
         <div className="fixed bottom-10 w-fit h-fit right-16 flex gap-4">
@@ -158,7 +244,7 @@ export const Chat = () => {
                         )}
                     </div>
                     <textarea
-                        disabled={loadingspeechtotext}
+                        disabled={loadingspeechtotext || !selectedOption || !loggedusername}
                         placeholder={loadingspeechtotext ? "Typing....":"Type a message..."}
                         className="border rounded w-full p-3 resize-none" // Added resize-none to prevent resizing
                         rows={1} // Set the number of visible rows

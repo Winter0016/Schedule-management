@@ -119,12 +119,17 @@ export const Plan = () => {
                         plan.map((data) => (
                           <tr key={data._id}>
                             <th className=' p-4'>{data.name}</th>
-                            <th className=' p-4'>{data.progress} {data.progress === null ? "0 task done" : data.progress === 1 ? "task done" : "tasks done"} </th>
-                            <th className=' p-4'>{calculateDaysBetweenDates(data.timebegin, currenttime)} {calculateDaysBetweenDates(data.timebegin, currenttime) === 0 ? "day" : calculateDaysBetweenDates(currenttime, data.timebegin) === 1 ? "day" : "days"}</th>
+                            <th className='p-4'>
+                              {data.finished_task.length} {data.finished_task.length === 0 
+                                ? "task done" 
+                                : data.finished_task.length === 1 
+                                  ? "task done" 
+                                  : "tasks done"}
+                            </th>                            <th className=' p-4'>{calculateDaysBetweenDates(data.timebegin, currenttime)} {calculateDaysBetweenDates(data.timebegin, currenttime) === 0 ? "day" : calculateDaysBetweenDates(currenttime, data.timebegin) === 1 ? "day" : "days"}</th>
                             <th>
                               {
                                 Delete == data._id ? (
-                                  <div className='flex gap-4 justify-center'>
+                                  <div className='flex  gap-4 justify-center'>
                                     <button onClick={() => setDelete("")} className='p-2 rounded-lg bg-red-900 text-sm'>Cancel</button>
                                     <button className='p-2 rounded-lg bg-green-900 text-sm' disabled={deleteing} onClick={deleteplan}>Confirm</button>
                                   </div>

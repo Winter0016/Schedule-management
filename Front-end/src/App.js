@@ -15,15 +15,18 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { Schedule } from "./pages/Schedule";
 import { Mytask } from "./pages/Mytask";
 import { Loading } from "./components/Loadingpage";
-import { Chat } from "./components/Chat";
 import { Layout } from "./components/Layout";
 import axios from 'axios';
 
 export const Usercontext = createContext("");
 
+
+
+
 function App() {
 
   const [loggedusername, setloggedusername] = useState("");
+  const [profilepicture,setprofilepicture] = useState("");
   const [login, setlogin] = useState(loggedusername ? true : false);
   const [active, setActive] = useState('');
   const [open, setopen] = useState(false);
@@ -38,6 +41,7 @@ function App() {
     const [activeid, setactiveid] = useState("");
 
 
+
   const [deleteresult, setdeleteresult] = useState("");
   const [createresult, setcreateresult] = useState("");
 
@@ -45,6 +49,7 @@ function App() {
   const [loadingplan, setloadingplan] = useState(true);
   const [selectedOption, setSelectedOption] = useState("");
 
+  const [lasttitle,setlastitle] = useState("");
 
   const [addtask, setaddtask] = useState(false);
   const [updatetaskresult, setupdatetaskresult] = useState("")
@@ -56,6 +61,18 @@ function App() {
       const [modifyacnametask, setmodifyacnametask] = useState();
   const [updatecheckedarrayresult,setupdatecheckedarrayresult] = useState("");
   const [deletefinishedtaskResult,setdeletefinishedtaskResult] = useState("");
+
+  const [selected, setSelected] = useState('info');
+
+  const [title,settitle] = useState("");
+  const [body,setbody] = useState("");
+  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedHour, setSelectedHour] = useState("");
+  const [selectedMinute, setSelectedMinute] = useState("");
+  const [activenotify,setactivenotify] = useState(false);
+  const [notifyMonth,setnotifyMonth] = useState("");
+  const [notifyDay,setnotifyDay] = useState("");
+  
 
 
   const today = new Date();
@@ -78,7 +95,7 @@ function App() {
       case "Friday": return 5;
       case "Saturday": return 6;
       case "Sunday": return 7;
-      default: return "Invalid day string"; // In case the input is not between 1 and 7
+      default: return ""; // In case the input is not between 1 and 7
     }
   }
 
@@ -97,7 +114,7 @@ function App() {
       if (data.user) {
         setlogin(true);
         setloggedusername(data.user);
-        setActive("main");
+        setprofilepicture(data.picture);
       }
     } catch (error) {
       console.log(error)
@@ -144,7 +161,7 @@ function App() {
         plan.forEach((data2) => {
           if (data2.name === selectedOption) {
             console.log(`updating`)
-            console.log(selectedDate);
+            console.log(selectedDate)
             if((selectedDate == date && selectedMonth ==(months + 1)) || (previousDate == date && previousMonth == (months + 1))) {
               currentchangetodaytask = true;
               console.log(`modified task todays => currentchange is true`)
@@ -202,10 +219,9 @@ function App() {
     }finally{
       console.log(taskarray);
       currentchangetodaytask = false;
-
+      setlastitle("")
       setcreateresult("")
       setdeleteresult("")
-
       setaddschedule("");
       setmodify(false);
       setaddacresult("");
@@ -226,6 +242,7 @@ function App() {
       setupdatecheckedarrayresult("");
 
       setdeletefinishedtaskResult("");
+      setactivenotify(false)
     }
   };
 
@@ -277,29 +294,80 @@ function App() {
 
 // Use useEffect to call handleUpdateTasks when needed
 useEffect(() => {
-    if (updatecheckedarrayresult !== "" || updatetaskresult !== "" || addacresult !== "" || deleteac !== "" || createresult !== "" || deleteresult !== "" || deletefinishedtaskResult !== "") {
+    if (updatecheckedarrayresult !== "" || updatetaskresult == "Added task successfully!" || updatetaskresult == "Updated task successfully!" || updatetaskresult =="Deleted activity successfully" || addacresult == "Action Updated!" || deleteac !== "" || createresult !== "" || deleteresult !== "" || deletefinishedtaskResult !== "") {
         console.log(updatetaskresult)
         handleUpdateTasks(); // Call the new function
     }
 }, [selectedOption, loggedusername,updatecheckedarrayresult,updatetaskresult,addacresult,deleteac,,createresult,deleteresult,deletefinishedtaskResult]);
 
 useEffect(()=>{
-  if(loggedusername !== ""){
-    console.log(`getplan at loggedusername`)
-    getplan();
+  if(profilepicture){
+    checkrefreshtoken();
   }
-},[loggedusername])
+},[profilepicture])
 
 useEffect(()=>{
-  if(selectedOption !== ""){
-    console.log(`getplan at selectedOption`);
-    handleUpdateTasks(); // Call the new function
+  if(loggedusername !== ""){
+    console.log(`getplan at loggedusername`)
+    handleUpdateTasks(); 
   }
-},[selectedOption])
+},[loggedusername,selectedOption])
+
+
+const VAPID_PUBLIC_KEY = 'BIrmw2mcz3aafP6wwwpnqQ1l8810B55qllJdBPoKveYwmXbPI8OnFkz3sTx7qBGW_kH_f5Tkx89PUYbz2ciHXEo';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+}
+
+async function subscribe(username,title,body,time) {
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    console.warn('Notification permission not granted');
+    return;
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+  });
+
+  await axios.post('http://localhost:3000/subscribe', subscription,username,title,body,time);
+  console.log('Push subscription sent to server:', subscription);
+}
+
+//testing
+// useEffect(() => {
+//   async function unsubscribeOld() {
+//     if ('serviceWorker' in navigator && 'PushManager' in window) {
+//       try {
+//         const registration = await navigator.serviceWorker.ready;
+//         const subscription = await registration.pushManager.getSubscription();
+//         if (subscription) {
+//           await subscription.unsubscribe();
+//           console.log('Unsubscribed old push subscription.');
+//         } else {
+//           console.log('No push subscription found.');
+//         }
+//       } catch (error) {
+//         console.error('Error unsubscribing:', error);
+//       }
+//     }
+//   }
+
+//   unsubscribeOld();
+// }, []);
 
   return (
     <>
-      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate,modifyupdatetask, setmodifyupdatetask,modifyacnametask, setmodifyacnametask,setdeletefinishedtaskResult}}>
+      <Usercontext.Provider value={{ login, setlogin, loggedusername, setloggedusername,setprofilepicture,profilepicture, active, setActive, open, setopen, plan, deleteac, setdeleteac, addacresult, setaddacresult, setdeleteresult, createresult, setcreateresult, getplan, setSelectedOption, selectedOption, date, years, months, days, addschedule, setaddschedule, reversetranslateDay, setaddtask, addtask, updatetaskresult, setupdatetaskresult, modify, setmodify, modifyacname, setmodifyacname, dailyid, setdailyid, activeid, setactiveid,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate,modifyupdatetask, setmodifyupdatetask,modifyacnametask, setmodifyacnametask,setdeletefinishedtaskResult,title,settitle,body,setbody,selectedDay,setSelectedDay,selectedHour,setSelectedHour,selectedMinute,setSelectedMinute,activenotify,setactivenotify,selected, setSelected,notifyMonth,setnotifyMonth,notifyDay,setnotifyDay,lasttitle,setlastitle}}>
         <BrowserRouter>
           <Header />
           {isLoading == true ? (

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import images from '../images';
 
 export const Login = () => {
-    const { setlogin, setloggedusername, loggedusername } = useContext(Usercontext);
+    const { setlogin, setloggedusername, loggedusername,setprofilepicture } = useContext(Usercontext);
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const { active, setActive } = useContext(Usercontext);
@@ -27,7 +27,7 @@ export const Login = () => {
             if (data.user) {
                 setlogin(true);
                 setloggedusername(data.user);
-                setActive("main");
+                setprofilepicture(data.picture);
                 navigate("/dashboard/plan")
             }
         } catch (error) {

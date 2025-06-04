@@ -28,10 +28,13 @@ const secretKey = 'your_secret_key'; // Replace with your actual secret key
 const Employee = require("./model/Employee");
 const User = require("./model/User");
 const UserPlan = require("./model/Plans");
+const NotifyUsers = require("./model/Notify");
 const Days = require("./model/Days")
 const Months = require("./model/Month")
 
-const SECRET_KEY = 'qwertyuiopasdfghjkl123';
+const webpush = require("web-push");
+const router = express.Router();
+
 
 const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns");
 
@@ -39,7 +42,7 @@ const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns")
 // app.use(cors());
 
 app.use(cors({
-    origin: 'http://localhost:3001', // Allow only frontend port 3001
+    origin: ['http://localhost:3001', 'http://26.2.30.138:3001','http://localhost:3002'], // Array of allowed origins
     credentials: true                // Allow cookies to be sent with requests
 }));
 
@@ -49,8 +52,8 @@ console.log(process.env.DATABASE_URI)
 connectDB();
 
 // Middleware to parse JSON bodies
-app.use(express.json());
-
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Middleware to parse cookies
 app.use(cookieParser());
 const axios = require('axios');
@@ -66,7 +69,7 @@ app.get('/greeting', (req, res) => {
 // const allow = [ROLE_LIST.User,ROLE_LIST.Admin];
 // console.log(allow)
 
-
+//testing
 const verifyJwt = async (req, res, next) => {
     const authHeader = req.headers.authorization || req.headers.Authorization;
     if (!authHeader?.startsWith("Bearer ")) return res.status(401).json({ "Error": "Couldn't find your JWT!" });
@@ -94,11 +97,11 @@ const verifyrole = (...allowedrole) => {
         next();
     }
 }
+//
 
 
 
-
-
+// register,verify function
 app.post('/auth/register', async (req, res) => {
     const { username, password, email } = req.body;
 
@@ -141,7 +144,6 @@ app.post('/auth/register', async (req, res) => {
         return res.status(500).json("Error creating user");
     }
 });
-
 app.post('/auth/check-username', async (req, res) => {
     // console.log(`checking username`)
     const { username } = req.body; // Get username from the body
@@ -164,7 +166,6 @@ app.post('/auth/check-email', async (req, res) => {
     const emailexists = await User.findOne({ email });
     return res.json({ exists: !!emailexists });
 });
-// Function to send the verification email
 const sendVerificationEmail = async (email, verificationLink) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail', // or any other email provider
@@ -183,7 +184,6 @@ const sendVerificationEmail = async (email, verificationLink) => {
 
     await transporter.sendMail(mailOptions);
 };
-
 app.get('/verify-email', async (req, res) => {
     const { token } = req.query;
 
@@ -208,7 +208,6 @@ app.get('/verify-email', async (req, res) => {
         return res.status(400).send('Invalid or expired token.');
     }
 });
-
 app.post("/reset-password", async (req, res) => {
     // console.log("running reset password")
     const { email } = req.body;
@@ -269,8 +268,9 @@ app.post("/change-password", async (req, res) => {
         return res.json("Error at changing password!");
     }
 })
+//
 
-
+// app schedule function
 app.post("/add-plan", async (req, res) => {
     const { username, name, timebegin } = req.body;
     try {
@@ -321,44 +321,112 @@ app.post("/plan", async (req, res) => {
     }
 });
 app.post("/update-task", async (req, res) => {
-    const { username, planname, nameac, acdescription, color, textcolor, modifyacname, timestart, timeend, deadline } = req.body;
+    const { username, planname, nameac, acdescription, color, textcolor, modifyacname, timestart, timeend, deadline,title,body,notify_day,notify_month,notify_hour,notify_minute,active,subscription,lasttitle } = req.body;
     try {
+        console.log(`body: ${body}`)
         const findUser = await UserPlan.findOne({ username: username }).exec();
 
         if (!findUser) {
+            console.log(`error`)
             return res.status(404).json("User not found");
         }
 
         const findplan = findUser.plans.find(plan => plan.name === planname);
 
         if (!findplan) {
+            console.log(`error`)
             return res.status(404).json("Plan not found");
         }
 
         const existtask = findplan.my_task.find(task => task.name === nameac);
+        const time = `${notify_month}/${notify_day} ${notify_hour || "0"}:${notify_minute || "0"}`
+        if(active){
+            console.log('Subscribed:', subscription);
+            console.log("time: ",time)
+            try {
+                const userexist = await NotifyUsers.findOne({ username: username }).exec();
 
-        if (modifyacname) {
-            if (!existtask) {
-                console.log(`task not exist in modification : ${nameac}`)
-                return res.status(404).json("Task not found for modification");
+                if (userexist) {
+                    existingNotif = userexist.notifylist.find(notif => (notif.title === lasttitle) );
+                    userduplicatenotif = userexist.notifylist.find(notif => (notif.title === title && !lasttitle));
+                    if(subscription !== "already have subscription"){
+                        userexist.subscribe = subscription;
+                    }
+                    if(userduplicatenotif){
+                        console.log("Duplicated notification is not allowed!")
+                        return res.json("Duplicated notification is not allowed!")
+                    }
+                    if (existingNotif) {
+                        console.log(`replicated found at updatetask notification !`)
+                        // Update existing notification's body and time
+                        existingNotif.title = title;
+                        existingNotif.body = body;
+                        existingNotif.time = time;
+                    } 
+                    else {
+                        // Add new notification
+                        userexist.notifylist.push({
+                            title: title,
+                            body: body,
+                            time: time,
+                        });
+                    }
+
+                    await userexist.save();
+                }
+                else {
+                    const newusernotify = await NotifyUsers.create({
+                        username: username,
+                        subscribe:subscription,
+                        notifylist: [
+                            {
+                                title:title,
+                                body:body,
+                                time:time,
+                            }
+                        ],
+                    })
+                    await newusernotify.save();
+                }
+            } catch (error) {
+                console.log(error);
+                return res.json(error.message)
             }
-            existtask.description = acdescription;
-            existtask.color = color;
-            existtask.textcolor = textcolor;
-            existtask.timestart = timestart;
-            existtask.timeend = timeend;
-            existtask.deadline = deadline;
-            existtask.name = modifyacname;
-            await findUser.save(); // Ensure to save after updating the task
-            return res.status(200).json("Updated task successfully!");
+        }else{
+            const user = await NotifyUsers.findOne({ username }).exec();  
+            console.log("time in fe :",time);  
+            if(user){
+                user.notifylist = user.notifylist.filter(
+                    (notif) => notif.title !== title || notif.time !== time
+                );
+                await user.save();
+            }
         }
 
-        if (existtask) {
-            return res.status(400).json("The task already exists!");
+        if(existtask){
+            if(modifyacname){
+                existtask.name = modifyacname;
+                existtask.description = acdescription;
+                existtask.color = color;
+                existtask.textcolor = textcolor;
+                existtask.timestart = timestart;
+                existtask.timeend = timeend;
+                existtask.deadline = deadline;
+                existtask.notification.title = title;
+                existtask.notification.body = body;
+                existtask.notification.notify_month = notify_month;
+                existtask.notification.notify_day = notify_day;
+                existtask.notification.notify_hour = notify_hour || "0";
+                existtask.notification.notify_minute = notify_minute || "0";
+                existtask.notification.active = active;
+                await findUser.save(); // Ensure to save after updating the task
+            }else{
+                return res.json("Duplicated task is not allowed!")
+            }
+        }else{
+            findplan.my_task.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, deadline: deadline,notification:{title:title,body:body,notify_day:notify_day,notify_hour:notify_hour || "0",notify_minute:notify_minute || "0",active:active,notify_month:notify_month} });
+            await findUser.save();
         }
-
-        findplan.my_task.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, deadline: deadline });
-        await findUser.save();
         return res.status(200).json("Added task successfully!");
     } catch (error) {
         console.log(error);
@@ -367,7 +435,7 @@ app.post("/update-task", async (req, res) => {
 })
 
 app.post("/delete-task", async (req, res) => {
-    const { username, planname, mytaskid } = req.body;
+    const { username, planname, mytaskid,time } = req.body;
 
     try {
         const updatedUserPlan = await UserPlan.findOneAndUpdate(
@@ -378,6 +446,15 @@ app.post("/delete-task", async (req, res) => {
 
         if (!updatedUserPlan) {
             return res.status(404).json("Activity not found");
+        }
+        const user = await NotifyUsers.findOne({ username }).exec();    
+        if(user){
+            console.log(`found user in delete notify: ${username}`);
+            console.log(time)
+            user.notifylist = user.notifylist.filter(
+                (notif) => notif.time !== time && notif.day !== null
+            );
+            await user.save();
         }
 
         res.json("Deleted activity successfully");
@@ -424,7 +501,6 @@ app.post("/update-todaytask", async (req, res) => {
         if (!userPlanData) {
             return res.status(404).json("Plan not found");
         }
-
         // Check if any entry in todaytask exists
         if (userPlanData.todaytask.length > 0) {
             console.log(changetodaytask)
@@ -459,6 +535,30 @@ app.post("/update-todaytask", async (req, res) => {
 });
 
 
+const DeleteNotifyTask = async(username,time) => {
+    const user = await NotifyUsers.findOne({ username }).exec();    
+    if(user){
+        console.log(`found user in delete notify: ${username}`);
+        console.log(time)
+        user.notifylist = user.notifylist.filter(
+            (notif) => notif.time !== time && notif.day !== null
+        );
+        await user.save();
+    }
+}
+
+function translateDay(dayNumber) {
+    switch (dayNumber) {
+      case 1: return "Monday";
+      case 2: return "Tuesday";
+      case 3: return "Wednesday";
+      case 4: return "Thursday";
+      case 5: return "Friday";
+      case 6: return "Saturday";
+      case 7: return "Sunday";
+      default: return "Invalid day number"; // In case the input is not between 1 and 7
+    }
+}
 app.post("/update-checkedarray", async (req, res) => {
     const { username, plan, checkedArray, day, month, date, year } = req.body; // checkedArray contains the _id of each task
 
@@ -494,7 +594,7 @@ app.post("/update-checkedarray", async (req, res) => {
                             const findfinishedtask = my_task.find(mytask => mytask.name === item.Name);
                             userPlanData.finished_task.push({
                                 name: item.Name, // Assuming you want to push the name
-                                date: `${day}, ${month + 1}/${date}/${year}`,
+                                date: `${translateDay(day)}, ${month + 1}/${date}/${year}`,
                                 deadline:findfinishedtask.deadline,
                                 description: findfinishedtask.description,
                                 timestart:findfinishedtask.timestart,
@@ -503,6 +603,7 @@ app.post("/update-checkedarray", async (req, res) => {
                                 textcolor:findfinishedtask.textcolor
                             });
                             userPlanData.my_task = userPlanData.my_task.filter(mytask => mytask._id.toString() !== findfinishedtask._id.toString());
+                            DeleteNotifyTask(username,`${findfinishedtask.notification.notify_month}/${findfinishedtask.notification.notify_day} ${findfinishedtask.notification.notify_hour}:${findfinishedtask.notification.notify_minute}`)
                         }
                     }
                 });
@@ -557,7 +658,7 @@ app.get("/days", async (req, res) => {
 })
 
 app.post("/delete-activity", async (req, res) => {
-    const { username, planname, dailyId, activityId } = req.body;
+    const { username, planname, dailyId, activityId,time,day } = req.body;
 
     try {
         const updatedUserPlan = await UserPlan.findOneAndUpdate(
@@ -574,6 +675,16 @@ app.post("/delete-activity", async (req, res) => {
         const updatedDaily = updatedUserPlan.plans.find(p => p.name === planname).daily.find(d => d._id.equals(dailyId));
         updatedDaily.activityCount = updatedDaily.activities.length;
         await updatedUserPlan.save(); // Save the updated document
+        
+        const user = await NotifyUsers.findOne({ username }).exec();    
+        if(user){
+            console.log(`found user in delete notify: ${username}`);
+            console.log(time)
+            user.notifylist = user.notifylist.filter(
+                (notif) => notif.time !== time && notif.day !== day
+            );
+            await user.save();
+        }
 
         res.json("Deleted activity successfully");
     } catch (error) {
@@ -583,7 +694,9 @@ app.post("/delete-activity", async (req, res) => {
 });
 
 app.post("/add-daily", async (req, res) => {
-    const { username, planname, day, nameac, acdescription, color, textcolor, modifyacname, timestart, timeend, important } = req.body;
+    const { username, planname, day, nameac, acdescription, color, textcolor, modifyacname, timestart, timeend, important,title,body,notify_day,notify_hour,notify_minute,active,subscription,lasttitle } = req.body;
+    console.log("active ",active);
+    console.log("subscription ",subscription)
     try {
         const findUser = await UserPlan.findOne({ username: username }).exec();
 
@@ -602,20 +715,92 @@ app.post("/add-daily", async (req, res) => {
         if (existingDay) {
             const existingActivity = existingDay.activities.find(activity => activity.name === nameac);
             if (!existingActivity) {
-                existingDay.activities.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important });
+                existingDay.activities.push({ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important,notification:{title:title,body:body,notify_day:notify_day,notify_hour:notify_hour,notify_minute:notify_minute,active:active} });
             } else {
                 if (modifyacname) {
                     existingActivity.name = modifyacname
+                    existingActivity.description = acdescription;
+                    existingActivity.color = color;
+                    existingActivity.textcolor = textcolor;
+                    existingActivity.timestart = timestart;
+                    existingActivity.timeend = timeend;
+                    existingActivity.important = important;
+                    existingActivity.notification.title = title;
+                    existingActivity.notification.body = body;
+                    existingActivity.notification.notify_day = notify_day;
+                    existingActivity.notification.notify_hour = notify_hour || "0";
+                    existingActivity.notification.notify_minute = notify_minute || "0";
+                    existingActivity.notification.active = active;
+                    existingActivity.notification.day = day;
+                }else{
+                    return res.json("Duplicated activity is not allowed on the same day!")
                 }
-                existingActivity.description = acdescription;
-                existingActivity.color = color;
-                existingActivity.textcolor = textcolor;
-                existingActivity.timestart = timestart;
-                existingActivity.timeend = timeend;
-                existingActivity.important = important;
             }
         } else {
-            findplan.daily.push({ day, activities: [{ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important }], activityCount: 1 });
+            findplan.daily.push({ day, activities: [{ name: nameac, description: acdescription, color: color, textcolor: textcolor, timestart: timestart, timeend: timeend, important: important,notification:{title:title,body:body,notify_day:notify_day,notify_hour:notify_hour || "0",notify_minute:notify_minute || "0",active:active} }], activityCount: 1 });
+        }
+        const time = `${notify_day} ${notify_hour || "0"}:${notify_minute || "0"}`
+        if(active){
+            console.log('Subscribed:', subscription);
+            console.log("time: ",time)
+            try {
+                const userexist = await NotifyUsers.findOne({ username: username }).exec();
+
+                if (userexist) {
+                    existingNotif = userexist.notifylist.find(notif => (notif.title === lasttitle && notif.day === day) );
+                    userduplicatenotif = userexist.notifylist.find(notif => (notif.title === title && notif.day === day && !lasttitle) );
+                    if(subscription !== "already have subscription"){
+                        userexist.subscribe = subscription;
+                    }
+                    if(userduplicatenotif){
+                        return res.json("Duplicated Notification is not allowed!")
+                    }
+                    if (existingNotif) {
+                        console.log(`replicated found on day ${day}!`)
+                        // Update existing notification's body and time
+                        existingNotif.title = title;
+                        existingNotif.body = body;
+                        existingNotif.time = time;
+                    } 
+                    else {
+                        // Add new notification
+                        userexist.notifylist.push({
+                            title: title,
+                            body: body,
+                            time: time,
+                            day:day,
+                        });
+                    }
+
+                    await userexist.save();
+                }
+                else {
+                    const newusernotify = await NotifyUsers.create({
+                        username: username,
+                        subscribe:subscription,
+                        notifylist: [
+                            {
+                                title:title,
+                                body:body,
+                                time:time,
+                                day:day,
+                            }
+                        ],
+                    })
+                    await newusernotify.save();
+                }
+            } catch (error) {
+                console.log(error);
+                return res.json(error.message)
+            }
+        }else{
+            const user = await NotifyUsers.findOne({ username }).exec();    
+            if(user){
+                user.notifylist = user.notifylist.filter(
+                    (notif) => notif.title !== title || notif.time !== time
+                );
+                await user.save();
+            }
         }
 
         // Update activityCount after adding or modifying activities
@@ -629,21 +814,34 @@ app.post("/add-daily", async (req, res) => {
         res.status(500).json("Error at adding activity");
     }
 });
+//
 
 
+// function logout login and keep login when refresh
 app.post("/auth/checkrefreshtoken", async (req, res) => {
     const { refreshtoken } = req.body;
-    if (refreshtoken) {
-        jwt.verify(
-            refreshtoken,
-            process.env.REFRESH_TOKEN_SECRET,
-            (err, decoded) => {
-                if (err) return (res.status(403).res.json({ "message": "The token is not matched!" }));
-                res.json({ "user": decoded.Userinfo.username })
-            }
-        )
+    if (!refreshtoken) {
+        return res.status(400).json({ message: "Refresh token required" });
     }
-})
+
+    try {
+        const decoded = jwt.verify(refreshtoken, process.env.REFRESH_TOKEN_SECRET);
+        const username = decoded.Userinfo.username;
+
+        const Founduser = await User.findOne({ username: username }).exec();
+        if (!Founduser) {
+            return res.status(401).json({ message: "No user found" });
+        }
+
+        res.json({
+            user: Founduser.username,
+            picture: Founduser.picture
+        });
+    } catch (err) {
+        return res.status(403).json({ message: "The token is not matched!" });
+    }
+});
+
 
 app.post("/auth/login", async (req, res) => {
     const { username, pwd } = req.body;
@@ -675,7 +873,12 @@ app.post("/auth/login", async (req, res) => {
         Founduser.refreshToken = refreshToken;
         const result = await Founduser.save();
         // console.log(result);
-        res.cookie("jwt", refreshToken, { httpOnly: false, Samesite: "Strict", maxAge: 7 * 24 * 60 * 60 * 1000, secure: false })
+        res.cookie("jwt", refreshToken, {
+            httpOnly: false,           // So frontend JS can access it
+            secure: false,             // Needed because localhost is not HTTPS
+            sameSite: "Lax",           // "Lax" works well on localhost
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+          });              
         res.json("Login successfully");
     } else {
         res.json("Wrong password!");
@@ -703,6 +906,28 @@ app.get("/auth/logout", async (req, res) => {
     res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
     return res.status(200).json({ "message": `User ${Founduser.username} has logged out` });
 });
+
+app.post("/auth/change-profile-picture", async (req, res) => {
+    const { pictureData, username } = req.body;
+    console.log(`picture: `,pictureData);
+    console.log(`username: `,username);
+
+    if (!pictureData || !username) {
+      return res.status(400).json("Missing data");
+    }
+  
+    const user = await User.findOne({ username }).exec();
+    if (!user) return res.status(404).json("User not found");
+  
+    user.picture = pictureData; // Save base64 directly
+    await user.save();
+  
+    res.status(200).json("Profile picture updated!");
+  });
+  
+//
+
+// AI plug in
 const today = new Date();
 const date = today.getDate();
 let days = today.getDay(); // Get the current day number (0 = Sunday, 1 = Monday, etc.)
@@ -723,33 +948,87 @@ const weekdays = {
     "thứ bảy": 6,
     "chủ nhật": 7
 };
+const vietnameseNumbers = {
+    "một": 1,
+    "hai": 2,
+    "ba": 3,
+    "bốn": 4,
+    "năm": 5,
+    "sáu": 6,
+    "bảy": 7,
+    "tám": 8,
+    "chín": 9,
+    "mười": 10
+};
+
+function parseVietnameseNumber(str) {
+    return vietnameseNumbers[str.toLowerCase()] || parseInt(str) || 1;
+}
+
+function testcalculatedeadline(userQuery){
+    const deadline = calculateDeadline(userQuery);
+    console.log(`deadline: `,deadline);
+}
+
+// testcalculatedeadline("đặt lịch đi bơi vào ngày mai");
+
+function testreg(text) {
+    const matchWeek = text.match(
+        /(thứ\s+(hai|ba|bốn|năm|sáu|bảy)|chủ nhật)\s*(một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|\d+)?\s*(tuần|tuan)\s*(sau|trước|truoc|nay)?/i
+    );
+    console.log(matchWeek);
+}
+
+// testreg("chủ nhật tuần sau");
+
+
 function calculateDeadline(userQuery) {
     const today = new Date();
     let targetDate = null;
+    let resultDay = null;
 
-    // Check for week modifiers (tuần này, tuần sau, tuần trước)
-    const isNextWeek = userQuery.includes("tuần sau");
-    const isThisWeek = userQuery.includes("tuần này");
-    const isLastWeek = userQuery.includes("tuần trước");
+    const matchWeek = userQuery.match(
+        /(thứ\s+(hai|ba|bốn|tư|năm|sáu|bảy)|chủ nhật)\s*(một|hai|ba|bốn|tư|năm|sáu|bảy|tám|chín|mười|\d+)?\s*(tuần|tuan)\s*(sau|trước|truoc|nay)?/i
+    );
+    let weekOffset = 0;
 
-    // Find which weekday is mentioned
-    for (const [dayName, dayNumber] of Object.entries(weekdays)) {
-        if (userQuery.includes(dayName)) {
-            let startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // Monday as start of the week
+    if (/ngày mai/i.test(userQuery)) {
+        targetDate = addDays(today, 1);
+        resultDay = targetDate.getDay();
+        return { deadline: format(targetDate, "d/M"), day: resultDay === 0 ? 7 : resultDay };
+    }
 
-            if (isNextWeek) {
-                startOfCurrentWeek = addWeeks(startOfCurrentWeek, 1);
-            } else if (isLastWeek) {
-                startOfCurrentWeek = subWeeks(startOfCurrentWeek, 1);
+    if (matchWeek) {
+        const thuexist = matchWeek[1]?.toLowerCase();
+        const numText = matchWeek[3]?.toLowerCase();
+        const num = numText ? parseVietnameseNumber(numText) : null;
+        const direction = matchWeek[5]?.toLowerCase();
+
+        if (direction === "sau") {
+            weekOffset = num || 1;
+        } else if (direction === "trước" || direction === "truoc") {
+            weekOffset = -num;
+        }
+
+        // Find the day name in the query
+        for (const [dayName, dayNumber] of Object.entries(weekdays)) {
+            if (userQuery.toLowerCase().includes(dayName)) {
+                let startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 });
+                startOfCurrentWeek = addWeeks(startOfCurrentWeek, weekOffset);
+                targetDate = addDays(startOfCurrentWeek, dayNumber - 1);
+                resultDay = dayNumber;
+                break;
             }
-
-            targetDate = addDays(startOfCurrentWeek, dayNumber - 1);
-            break;
         }
     }
 
-    return targetDate ? format(targetDate, "d/M") : "";
+    return targetDate
+        ? { deadline: format(targetDate, "d/M"), day: resultDay }
+        : { deadline: "", day: null };
 }
+
+
+
 
 // console.log(`${days}, ${months}/${date} ${years}`);
 const testingGeminiAPI = async() =>{
@@ -760,18 +1039,19 @@ const testingGeminiAPI = async() =>{
     }
     console.log(`thứ ${dayinstring} ngày ${date} tháng ${months + 1}`)
     const findplan = findUser.plans.find(plan => plan.name === "Study plan");
-    queryGemini("đặt nhiệm vụ cho tôi học blockchain vào thứ sáu tuần sau lúc sáu giờ sáng đến mười một giờ sáng","Napoleon",findplan);
+    queryGemini("đặt hoạt động cho tôi học blockchain vào ngày mai");
 }
-testingGeminiAPI();
+// testingGeminiAPI();
 
-const queryGemini = async (userQuery, username, PLANS) => {
+const queryGemini = async (userQuery) => {
     const apikey = process.env.GEMINI_API_KEY;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apikey}`;
 
-    const deadline = calculateDeadline(userQuery); // Compute the date from the user's input
+    const deadline = calculateDeadline(userQuery).deadline; // Compute the date from the user's input
+    const day = calculateDeadline(userQuery).day;
     if (deadline) {
-        userQuery += ` vào ngày ${deadline}`;
-    }
+        userQuery += ` vào ngày ${deadline},day: ${day}`;
+    }   
 
     try {
         const requestBody = {
@@ -784,30 +1064,35 @@ const queryGemini = async (userQuery, username, PLANS) => {
                             - đây là câu hỏi của người dùng: ${userQuery}
                             -Khi người ta hỏi bạn phải kiếm tra trong câu hỏi nhứng thứ sau đây:
                                 1) Xác định mục đích là tạo task hoặc schedule:
-                                    +Xác định là tạo task: khi trong câu hỏi của người dùng có từ "task" hoặc "nhiệm vụ" => purpose:"make-task"
-                                    +Xác định là tạo schedule: khi trong câu hỏi của người dùng có từ "schedule" hoặc "lịch" hoặc "lịch trình" => purpose:"make-schedule"
+                                    +Xác định là tạo task: khi trong câu hỏi của người dùng có từ "tạo" cùng với các từ sau như "task","lịch" hoặc "nhiệm vụ" => purpose:"make-task"
+                                    +Xác định là tạo schedule: khi trong câu hỏi của người dùng có từ "tạo" cùng với các từ sau như "schedule","hoạt động" => purpose:"make-schedule"
+                                    +Nếu người dùng không khai báo purpose thì bạn mặc định purpose là => purpose:"make-task"
                                     +Nếu bạn không xác định task hoặc schedule thì hãy bỏ trong purpose => purpose:""
                                 2) Xác định thời gian:
-                                    - Ví dụ mẫu câu:"vào lúc mười ba giờ ba mươi phút(người dùng có thể nói là một giờ chiều ba mười phút,nếu nói là một giờ chiều ba mươi phút bạn phải tự biết đó là mười ba giờ ba mươi phút) đến mười bảy giờ (người dùng có thể nói là năm giờ chiều, bạn phải tự biết đó là mười bảy giờ)(bạn phải nhận biết giờ đó am hoặc là pm và chuyển đổi nó sang giờ hai chữ số như:01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), 
-                                    + Xác định giờ và phút bắt đầu: hãy lấy các thời gian có trước ví dụ như 13h30 đến 17h30(lưu ý cái này chỉ là ví dụ để bạn hiểu) thì thời gian bắt đầu là 13:30 => time-start:13:30
-                                    + Xác định giờ và phút kết thúc: sau khi lấy thời gian bắt đầu thì bạn sẽ lấy giờ phút ở phía sau đó ví dụ như 13h30 đến 17h30(lưu ý cái này chỉ là ví dụ để bạn hiểu) thì thời gian kết thúc là 17:30 => time-end:17:30
-                                    + Nếu người dùng không cho bất kỳ thời gian nào hoặc bạn không xác định được thì bạn để trống cả hai => timestart:"" , timeend:""
+                                    - Ví dụ mẫu câu:"vào lúc mười ba giờ ba mươi phút(người dùng có thể nói là một giờ chiều ba mười phút,nếu nói là một giờ chiều ba mươi phút bạn phải tự biết đó là mười ba giờ ba mươi phút) đến mười bảy giờ (người dùng có thể nói là năm giờ chiều, bạn phải tự biết đó là mười bảy giờ)(bạn phải nhận biết giờ đó am hoặc là pm và chuyển đổi nó sang giờ một chữ số như:0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), 
+                                    + Xác định giờ và phút bắt đầu: hãy lấy các thời gian có trước ví dụ như 13h30 đến 17h30(lưu ý cái này chỉ là ví dụ để bạn hiểu) thì thời gian bắt đầu là 13:30 => time-start:"13:30"
+                                    + Xác định giờ và phút kết thúc: sau khi lấy thời gian bắt đầu thì bạn sẽ lấy giờ phút ở phía sau đó ví dụ như 13h30 đến 17h30(lưu ý cái này chỉ là ví dụ để bạn hiểu) thì thời gian kết thúc là 17:30 => time-end:"17:30"
+                                    + nếu người ta chỉ nói giờ không nói phút như năm giờ chiều thì bạn để: "17:0",...
+                                    + LƯU Ý LUÔN CHUYỂN ĐỔI GIỜ VÀ PHÚT SANG MỘT CHỮ SỐ LÀ KHÔNG THÊM SỐ 0 ở đằng sau mỗi số! tương tự với số 0!!
+                                    + Giờ và phút phải được định dạng ở một chữ số! như 13:30,4:3,15:8,15:12,.....
+                                    + nếu bạn không xác định được thời gian time-start thì bỏ nó như này: ":"  , tương tự với timeend!
                                 3) xác định ngày tháng:
                                     - thứ ngày tháng hiện tại của người dùng là: ${format(new Date(), "EEEE, d/M")}
                                     + xác định ngày tháng: ví dụ tháng bốn ngày ba mươi(lưu ý cái này chỉ là ví dụ để bạn hiểu) => deadline: 30/4
                                     + sử lý các ngày tháng không hợp lệ với nhau: nếu người dùng nói ngày tháng không hợp lệ ví dụ như tháng bốn nhưng người dùng nói ngày ba mười mốt trong khi tháng bốn chỉ có ba mươi ngày(lưu ý ví dụ này chỉ để cho bạn hiểu) , suy ra bạn phải bỏ trong deadline ví ngày tháng không hợp lệ với nhau, tương tự với các ngày tháng khác => deadline:""
+                                    + lưu ý chuyển ngày tháng sang 1 chữ số như => deadline:"1/3"
                                 4) xác định thứ:
                                     + Lưu ý: thứ hai => day:1 , thứ ba => day:2, thứ tư/bốn => day:3, thứ năm => day:4 , thứ sáu => day:5 , thứ bảy => day:6 , chủ nhật => day:7
                                     + xác định thứ như thứ hai,thứ ba , thứ tư,thứ năm,thứ sáu,thứ bảy,chủ nhật ví dụ như : đặt lịch với nội dung meeting giáo sư vào thứ bảy lúc mười lăm giờ mười => day:6 (lưu ý đây là ví dụ cho bạn hiểu)
-                                5) Xác định nội dung:
-                                    + Xác định nội dung: là những nội dung nằm phía sau từ "nội dung" ví dụ đặt lịch cho tôi vào thứ bảy với nội dung là đá banh vào lúc bảy giờ sáng thì nội dung sẽ là "đá banh" => content:"đá banh" (lưu ý đây chỉ là ví dụ cho bạn hiểu) trong nội dung không được có thời gian ngày tháng, nội dung có thể nằm giửa mục đích thời gian hoặc ngày tháng,thứ.. tuyệt đối được nhầm chúng với thứ khác
-                                    + Nếu người dùng không cho nội dung hoặc từ key word là "nội dung" thì bạn hãy bỏ trống => content: ""
-                                6) xác định mô tả:
-                                    + Xác định mô tả: là những mô tả nằm phía sau từ "mô tả" ví dụ đặt lịch cho tôi vào thứ bảy với nội dung là đá banh vào lúc bảy giờ sáng với mô tả là đá banh với phúc thì mô tả sẽ là "đá banh với phúc" => description:"banh với phúc" (lưu ý đây chỉ là ví dụ cho bạn hiểu) trong nội dung không được có thời gian ngày tháng, nội dung có thể nằm giửa mục đích thời gian hoặc ngày tháng,thứ.. tuyệt đối được nhầm chúng với thứ khác     
-                                    + Nếu người dùng không cho mô tả hoặc từ key word là "mô tả" thì bạn hãy bỏ trống => content: ""
+                                5) Xác định nội dung và mô tả:
+                                    + người dùng có thể sẽ đưa ra ít hoặc hàng loạt thông tin về các hoạt động, từ thông tin đó bạn phải tóm gọn lại rồi TỰ xác định nội dung và mô tả, nội dung thì thường sẽ lấy ý đầu tiên trong thông tin , ví dụ cho bạn hiểu là: tôi đi dã ngoại , trong ngày đó tôi sẽ câu cá , bơi lội chơi bòng chuyền và hát bên đống lửa cùng với các người bạn, từ đó bạn xác định nội dung là đi dã ngoại rồi các ý sau là mô tả,nếu thông tin ít đủ chỉ bỏ cho nội dung thì bạn hãy để phần mô tả để trống. Khi xác định được nội dung bạn sẽ bỏ vào => content:"" , còn phần mô tả sẽ bỏ vào => description:"".   
+                                6) Gửi câu phản hồi:
+                                    + Nếu bạn đã hoàn thành xong xác định các vấn đề trên hãy trả về câu phản hồi là => response: "Tôi đã hoàn thành tạo <purpose>(cái mà bạn đã xác định mục đích á)"
+                                    + Còn nếu bạn không thể xác định được gì cả thì bạn hãy trả về câu phản hồi là => response: "Tôi không thể hoàn thành dựa trên câu hỏi của bạn."
+                                    + Nếu người dùng không hỏi câu hỏi liên quan đến tạo task,nhiệm vụ,lịch,lịch trình hay schedule thì bạn hãy trả lời như một AI thông thường và bỏ vào phần response => response: câu trả lời của bạn
 
                                 - Sau khi bạn xác định được hết các keyword bạn chỉ cần đơn giản trả về nội dung như mẫu không gì hơn:
-                                {purpose:"", timestart:"", timeend:"", deadline:"", day:"", content:"", description:""} `
+                                {purpose:"", timestart:"", timeend:"", deadline:"", day:"", content:"", description:"",response:""} `
                         }
                     ]
                 }
@@ -835,17 +1120,17 @@ const queryGemini = async (userQuery, username, PLANS) => {
     }
 };
 app.post("/ask", async (req, res) => {
-    const {username,planname,question} = req.body;
-    const findUser = await UserPlan.findOne({ username: username }).exec();
+    const {question} = req.body;
+    // const findUser = await UserPlan.findOne({ username: username }).exec();
 
-    if (!findUser) {
-        return res.status(404).json("User not found");
-    }
-    const findplan = findUser.plans.find(plan => plan.name === planname);
-    if(!findplan){
-        return res.status(404).json("Plan not found");
-    }
-    const reply = await queryGemini(question, username, findplan);
+    // if (!findUser) {
+    //     return res.status(404).json("User not found");
+    // }
+    // const findplan = findUser.plans.find(plan => plan.name === planname);
+    // if(!findplan){
+    //     return res.status(404).json("Plan not found");
+    // }
+    const reply = await queryGemini(question);
     res.json(reply);
   });
 
@@ -857,7 +1142,10 @@ const storage = multer.diskStorage({
         cb(null, `received${path.extname(file.originalname)}`); 
     }
 });
+//
 
+
+//Speech-to-text
 const upload = multer({ storage: storage });
 
 app.post('/voice-receive', upload.single('audio'), async (req, res) => {
@@ -952,7 +1240,143 @@ async function transcribeAudio(inputFileName) {
         return "failed";
     }
 }
+//
 
+//Web push notification
+const vapidKeys = {
+    publicKey: process.env.Public_Key,
+    privateKey: process.env.Private_Key,
+};
+
+function getCurrentNotifyTime() {
+    const now = new Date();
+    const day = now.getDay() === 0 ? 7 : now.getDay(); // Sunday is 0, convert to 7
+    const hours = now.getHours().toString()
+    const minutes = now.getMinutes().toString()
+    const date = now.getDate();
+    const month = now.getMonth();
+    const time = `${hours}:${minutes}`;
+    return { day: day.toString(), time,date,month };
+  }
+  
+  
+  setInterval(async () => {
+    console.log("running interval for daily notification");
+    const { day, time,date,month } = getCurrentNotifyTime();
+    const currentCheck = `${day} ${time}`;
+    const currentdateandmonth = `${month + 1}/${date} ${time}`
+  
+    try {
+      const users = await NotifyUsers.find({ 'notifylist.time': currentCheck });
+      if (users) {
+        console.log(users);
+        console.log("currentcheck: ",currentCheck);
+        // console.log(currentdateandmonth);
+      }
+  
+      webpush.setVapidDetails(
+        'mailto:chauquangphuc2604.2604@gmail.com',
+        vapidKeys.publicKey,
+        vapidKeys.privateKey
+      );
+  
+      for (const user of users) {
+        for (const notif of user.notifylist) {
+            console.log("notif time: ",notif.time)
+          if (notif.time === currentCheck ) {
+            console.log(`Sending notification to ${user.username}:`, notif.title, notif.body);
+  
+            // Use the subscription as is, no replacement
+            try {
+              await webpush.sendNotification(user.subscribe, JSON.stringify({
+                title: notif.title,
+                body: notif.body
+              }));
+            } catch (error) {
+              console.error(`Push failed for ${user.username}:`, error.message);
+              if (error.response) {
+                console.error("Full Response:", error.response);
+                console.error("Status Code:", error.statusCode);
+                console.error("Headers:", error.headers);
+                console.error("Body:", error.body);
+              }
+              console.error("Full Error Object:", error);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error in scheduled notification check:", err.message);
+    }
+  }, 40 * 1000);
+
+  setInterval(async () => {
+    console.log("running interval for task notification");
+    const { day, time,date,month } = getCurrentNotifyTime();
+    const currentCheck = `${day} ${time}`;
+    const currentdateandmonth = `${month + 1}/${date} ${time}`
+  
+    try {
+      const users = await NotifyUsers.find({ 'notifylist.time': currentdateandmonth });
+      if (users) {
+        console.log(users);
+        // console.log(currentCheck);
+        console.log("currentdateandmonth: ",currentdateandmonth);
+      }
+  
+      webpush.setVapidDetails(
+        'mailto:chauquangphuc2604.2604@gmail.com',
+        vapidKeys.publicKey,
+        vapidKeys.privateKey
+      );
+  
+      for (const user of users) {
+        for (const notif of user.notifylist) {
+            console.log("notif time: ",notif.time)
+          if (notif.time === currentdateandmonth) {
+            console.log(`Sending notification to ${user.username}:`, notif.title, notif.body);
+  
+            // Use the subscription as is, no replacement
+            try {
+              await webpush.sendNotification(user.subscribe, JSON.stringify({
+                title: notif.title,
+                body: notif.body
+              }));
+            } catch (error) {
+              console.error(`Push failed for ${user.username}:`, error.message);
+              if (error.response) {
+                console.error("Full Response:", error.response);
+                console.error("Status Code:", error.statusCode);
+                console.error("Headers:", error.headers);
+                console.error("Body:", error.body);
+              }
+              console.error("Full Error Object:", error);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error in scheduled notification check:", err.message);
+    }
+  }, 40 * 1000);
+  
+  
+  
+  app.post('/sendNotification', async (req, res) => {
+    const { title, body } = req.body;
+    const payload = JSON.stringify({ title, body });
+  
+    const results = await Promise.allSettled(
+      subscriptions.map(sub => webpush.sendNotification(sub, payload))
+    );
+  
+    console.log('Notification sent.');
+    res.status(200).json({ results });
+  });
+//
+
+
+//testing function
 app.post('/login', (req, res) => {
     const { username, password, age } = req.body;
     // Validate username and password here (omitted for simplicity)
@@ -991,11 +1415,11 @@ const protectedRoute = (req, res) => {
 
 // Apply middleware to the protected route
 app.get('/protected', verifyToken, protectedRoute);
+//
+
+
 
 // Start the server
-
-
-
 const PORT = process.env.PORT || 3000;
 
 mongoose.connection.on('open', () => {

@@ -76,6 +76,36 @@ const IncommingtaskSchema = new Schema({
   status: {
     type: String,
     default: null
+  },
+  notification:{
+    active:{
+      type:Boolean,
+      default:false,
+    },
+    title:{
+      type:String,
+      default:""
+    },
+    body:{
+      type:String,
+      default:""
+    },
+    notify_month:{
+      type:String,
+      default:null
+    },
+    notify_day:{
+      type:String,
+      default:null
+    },
+    notify_hour:{
+      type:String,
+      default:null
+    },
+    notify_minute:{
+      type:String,
+      default:null
+    }
   }
 });
 
@@ -117,6 +147,32 @@ const DailySchema = new Schema({
     important: {
       type: Boolean,
       default: false,
+    },
+    notification:{
+      active:{
+        type:Boolean,
+        default:false,
+      },
+      title:{
+        type:String,
+        default:""
+      },
+      body:{
+        type:String,
+        default:""
+      },
+      notify_day:{
+        type:String,
+        default:null
+      },
+      notify_hour:{
+        type:String,
+        default:null
+      },
+      notify_minute:{
+        type:String,
+        default:null
+      }
     }
   }],
 });

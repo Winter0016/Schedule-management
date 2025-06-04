@@ -6,7 +6,7 @@ import images from '../images'; // Assuming 'images.island' is a valid image pat
 import axios from 'axios';
 
 export const Mytask = () =>{
-    const { loggedusername, plan,selectedOption,monthName,setSelectedOption,days, date, years, months, open,setaddtask,addtask,updatetaskresult,setupdatetaskresult,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate,modifyupdatetask, setmodifyupdatetask,modifyacnametask, setmodifyacnametask,setdeletefinishedtaskResult} = useContext(Usercontext);    
+    const { loggedusername, plan,selectedOption,monthName,setSelectedOption,days, date, years, months, open,setaddtask,addtask,updatetaskresult,setupdatetaskresult,loadingplan,setupdatecheckedarrayresult,selectedMonth,selectedDate,setSelectedDate,setSelectedMonth,setPreviousMonth,setPreviousDate,modifyupdatetask, setmodifyupdatetask,modifyacnametask, setmodifyacnametask,setdeletefinishedtaskResult,title,settitle,body,setbody,selectedHour,setSelectedHour,selectedMinute,setSelectedMinute,activenotify,setactivenotify,selected, setSelected,notifyMonth,setnotifyMonth,notifyDay,setnotifyDay,lasttitle,setlastitle} = useContext(Usercontext);    
       const [checkedarray,setcheckedarray] = useState([]);
       const [updatingcheckedarray,setupdatingcheckedarray] = useState(false);
     
@@ -52,82 +52,82 @@ export const Mytask = () =>{
     const [time2, setTime2] = useState({ hours: '', minutes: '' });
     
     const handleMonthChange = (e) => {
-        setSelectedMonth(parseInt(e.target.value));
+        setSelectedMonth((e.target.value));
         setSelectedDate(null); // Reset date when month changes
     };
     
     const handleDateChange = (e) => {
-        setSelectedDate(parseInt(e.target.value));
+        setSelectedDate((e.target.value));
     };
     
     const getDaysInMonth = (month, year) => {
         return new Date(year, month, 0).getDate();
     };
     
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        if (!/^\d*$/.test(value)) return; // Only allow numbers
-        if (name === 'hours') {
-            if (value.length <= 2 && (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 23))) {
-                setTime((prevTime) => ({ ...prevTime, hours: value }));
-            }
-        } else if (name === 'minutes') {
-            if (value.length <= 2 && (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59))) {
-                setTime((prevTime) => ({ ...prevTime, minutes: value }));
-            }
-        }
-    };
-    const handleChange2 = (e) => {
-        const { name, value } = e.target;
-        if (!/^\d*$/.test(value)) return; // Only allow numbers
-        if (name === 'hours') {
-            if (value.length <= 2 && (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 23))) {
-                setTime2((prevTime) => ({ ...prevTime, hours: value }));
-            }
-        } else if (name === 'minutes') {
-            if (value.length <= 2 && (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59))) {
-                setTime2((prevTime) => ({ ...prevTime, minutes: value }));
-            }
-        }
-    };
-          // rollover2
+    function urlBase64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+        const rawData = window.atob(base64);
+        return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+    }
     const updatetask = async(e)=>{
         e.preventDefault();
         let timeStart = { ...time };
         let timeEnd = { ...time2 };
 
         try {
-            // Check and set minutes to "00" if hours are present but minutes are not
-            if (timeStart.hours && !timeStart.minutes) {
-                timeStart.minutes = "00";
-            }
-            if (timeEnd.hours && !timeEnd.minutes) {
-                timeEnd.minutes = "00";
-            }
-            if (timeStart.hours.toString().length === 1) {
-                timeStart.hours = "0" + timeStart.hours.toString();
-            }
-            if (timeStart.minutes.toString().length === 1) {
-                timeStart.minutes = "0" + timeStart.minutes.toString();
-            }
-            if (timeEnd.hours.toString().length === 1) {
-                timeEnd.hours = "0" + timeEnd.hours.toString();
-            }
-            if (timeEnd.minutes.toString().length === 1) {
-                timeEnd.minutes = "0" + timeEnd.minutes.toString();
-            }
-
-            // Validation for incorrect time inputs
-            if ((!timeStart.hours && timeStart.minutes) || (!timeEnd.hours && timeEnd.minutes)) {
-                throw new Error("Invalid time");
-            }
-
-            // Validation for time start and time end
-            if ((timeStart.hours && !timeEnd.hours) || (!timeStart.hours && timeEnd.hours)) {
-                throw new Error("Time start and Time End need to be together!");
-            }
-
             setupdatingtask(true);
+            let subscription = null;
+            if(!selectedDate && !selectedMonth){
+                throw new Error("Deadlines are required!");
+            }
+            if(!acname){
+                throw new Error("Name is required in info sector!")
+            }
+            if(timeStart.hours && !timeStart.minutes){
+                throw new Error("Min is required when input Hour!")
+            }
+            if(timeEnd.hours && !timeEnd.minutes){
+                throw new Error("Min is required when input Hour!")
+            }
+            
+            if (activenotify) {
+                console.log("activenotify is true");
+                if(!notifyMonth || !notifyDay){
+                    throw new Error("Notify day and month are required for notification!")
+                }
+                // 🔐 Check if notifications are blocked
+                console.log("notification permission: ",Notification.permission);
+                if (Notification.permission === 'denied') {
+                    alert("You have blocked notifications. Please enable them in your browser settings.");
+                    throw new Error("Notifications are blocked.");
+                }
+            
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    throw new Error("Website has blocked prompt, please enable it back!");
+                }
+            
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    subscription = await registration.pushManager.getSubscription();
+            
+                    if (!subscription) {
+                    const VAPID_PUBLIC_KEY = 'BIrmw2mcz3aafP6wwwpnqQ1l8810B55qllJdBPoKveYwmXbPI8OnFkz3sTx7qBGW_kH_f5Tkx89PUYbz2ciHXEo';
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                    });
+                    console.log("New subscription created:", subscription);
+                    } else {
+                    console.log("Existing subscription found:", subscription);
+                    }
+                } catch (subError) {
+                    console.error("Error during subscription:", subError);
+                    alert("Failed to get push subscription. Please try again later.");
+                    throw subError;
+                }
+            }
             const response = await axios.post("http://localhost:3000/update-task",{
                 username: loggedusername,
                 planname: selectedOption,
@@ -135,10 +135,19 @@ export const Mytask = () =>{
                 acdescription: descriptionac,
                 color: choosecolor,
                 textcolor: textcolor,
-                timestart: `${timeStart.hours}:${timeStart.minutes}`,
-                timeend: `${timeEnd.hours}:${timeEnd.minutes}`,
+                timestart: `${timeStart.hours}:${timeStart.hours? timeStart.minutes : ""}`,
+                timeend: `${timeEnd.hours}:${timeStart.hours ? timeEnd.minutes : ""}`,
                 deadline: `${selectedMonth}/${selectedDate}`,
-                modifyacname: modifyacnametask
+                modifyacname: modifyacnametask,
+                notify_month: notifyMonth ? notifyMonth : "",
+                notify_day: notifyDay ? notifyDay : "",
+                notify_hour: selectedHour,
+                notify_minute: selectedMinute ,
+                title: title || modifyacnametask || acname,
+                lasttitle:lasttitle,
+                body: body || descriptionac,
+                active: activenotify,
+                subscription: subscription || "already have subscription"
             })
             const data = response.data;
             setupdatetaskresult(data);
@@ -161,6 +170,7 @@ export const Mytask = () =>{
                     username: loggedusername,
                     planname: selectedOption,
                     mytaskid:mytaskid,
+                    time: `${notifyMonth}/${notifyDay} ${selectedHour}:${selectedMinute}`
                 }),
             });
             const data = await response.json();
@@ -239,7 +249,7 @@ export const Mytask = () =>{
     //
 
     const closefunction = ()=>{
-        setaddtask(false);setupdatetaskresult("");setmodifyupdatetask(false);setmodifyacnametask("");setSelectedMonth("");setSelectedDate("");setPreviousDate("");setPreviousMonth("");
+        setaddtask(false);setupdatetaskresult("");setmodifyupdatetask(false);setmodifyacnametask("");setSelectedMonth("");setSelectedDate("");setPreviousDate("");setPreviousMonth("");setlastitle("");setactivenotify(false);
     }
     return(
         <>
@@ -247,103 +257,241 @@ export const Mytask = () =>{
                 {addtask && (
                     <>
                         <div className='absolute w-full h-screen bg-customblue2 bg-opacity-20 flex flex-wrap justify-center items-center z-50'>
-                            <div className='w-fit md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark relative max-h-[44rem] overflow-auto hide-scrollbar'>
-                                <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => closefunction()} alt="" />
-                                <div className='text-center break-words text-customblue text-2xl'>TASK</div>
-                                <form onSubmit={updatetask}>
-                                    <div className={`text-base text-gray-400 mt-3`}>{modifyupdatetask ? "Current Title" : "Title"}</div>
-                                    <input required value={acname} onChange={(e)=>setacname(e.target.value)} readOnly={modifyupdatetask ? true: false} type="text" className={`rounded-lg p-2 bg-customblue2 w-2/3 mt-3 text-gray-200`} />
-                                    {modifyupdatetask && (
-                                        <>
-                                        <div className='text-base text-gray-400 mt-3'>Change Title (Optional)</div>
-                                        <input type="text" className='rounded-lg p-2 bg-customblue2 w-2/3 mt-3 text-gray-200' value={modifyacnametask} onChange={(e) => setmodifyacnametask(e.target.value)} />
-                                        </>
-                                    )}
-                                    <div className="flex items-center gap-2 text-gray-400 mt-3 text-lg">
-                                        <div>Time Start (optional):</div>
-                                        <input
-                                        type="text"
-                                        name="hours"
-                                        placeholder="HH"
-                                        value={time.hours}
-                                        onChange={handleChange}
-                                        className="border border-gray-300 rounded-md w-12 text-center"
-                                        maxLength="2"
-                                        />
-                                        <span>:</span>
-                                        <input
-                                        type="text"
-                                        name="minutes"
-                                        placeholder="MM"
-                                        value={time.minutes}
-                                        onChange={handleChange}
-                                        className="border border-gray-300 rounded-md w-12 text-center"
-                                        maxLength="2"
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2 text-gray-400 mt-3 text-lg">
-                                        <div>Time End (optional):</div>
-                                        <input
-                                        type="text"
-                                        name="hours"
-                                        placeholder="HH"
-                                        value={time2.hours}
-                                        onChange={handleChange2}
-                                        className="border border-gray-300 rounded-md w-12 text-center"
-                                        maxLength="2"
-                                        />
-                                        <span>:</span>
-                                        <input
-                                        type="text"
-                                        name="minutes"
-                                        placeholder="MM"
-                                        value={time2.minutes}
-                                        onChange={handleChange2}
-                                        className="border border-gray-300 rounded-md w-12 text-center"
-                                        maxLength="2"
-                                        />
-                                    </div>
-                                    <div className='flex items-center gap-2 text-gray-400 mt-3 text-lg'>
-                                        <div className='text-red-500'>Deadline (required):</div>
-                                        <div>
-                                            <select
-                                                required
-                                                value={selectedMonth || ""} // Set to an empty string if selectedMonth is null or undefined
-                                                onChange={handleMonthChange}
-                                                className="border border-gray-300 rounded-md w-20 text-center"
+                            <form onSubmit={updatetask} className='w-full md:w-[30rem] m-auto p-5 rounded-3xl bg-customdark relative min-h-[44rem] overflow-auto hide-scrollbar flex flex-col justify-between'>
+                                <div>
+                                    <img src={images.closecross} className='size-12 absolute top-4 right-5 cursor-pointer' onClick={() => closefunction()} alt="" />
+                                    <div className='text-center break-words text-customblue text-2xl'>TASK</div>
+                                    <div className='flex justify-center w-full mt-5'>
+                                        <div className='h-10 w-1/2 relative flex items-center justify-between overflow-hidden bg-gray-700 rounded-full'>
+                                            <div
+                                            className={`absolute top-0 left-0 w-1/2 h-full bg-white rounded-full transition-transform duration-300`}
+                                            style={{
+                                                transform: selected === 'info' ? 'translateX(0%)' : 'translateX(100%)'
+                                            }}
+                                            />
+                                            <div
+                                            onClick={() => setSelected('info')}
+                                            className={`flex-1 flex justify-center text-center z-10 cursor-pointer select-none ${
+                                                selected === 'info' ? 'text-gray-800' : 'text-gray-400'
+                                            }`}
                                             >
-                                                <option value="">Month</option> {/* Use an empty string as the default value */}
-                                                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                                                    <option key={month} value={month}>
-                                                        {month}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                            </svg>
+                                            </div>
+                                            <div
+                                            onClick={() => setSelected('notify')}
+                                            className={`flex-1 flex justify-center text-center z-10 cursor-pointer select-none ${
+                                                selected === 'notify' ? 'text-gray-800' : 'text-gray-400'
+                                            }`}
+                                            >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                            </svg>
+
+                                            </div>
                                         </div>
-                                        <span>/</span>
-                                        <select
-                                            required
-                                            value={selectedDate || ""}
-                                            onChange={handleDateChange}
-                                            className="border border-gray-300 rounded-md w-16 text-center"
-                                            disabled={!selectedMonth}
-                                        >
-                                            <option value="">Date</option>
-                                            {selectedMonth &&
-                                                Array.from({ length: getDaysInMonth(selectedMonth, new Date().getFullYear()) }, (_, i) => i + 1).map((day) => (
-                                                    <option key={day} value={day}>
-                                                        {day}
-                                                    </option>
-                                                ))}
-                                        </select>
                                     </div>
-                                    <div value={choosecolor} onChange={(e)=>setchoosecolor(e.target.value)} className='mt-3 text-base text-gray-400'>Choose Background Color</div>
-                                    <input required className='w-2/3 mt-3 rounded-lg bg-customdark h-[2rem]' type="color" value={choosecolor} onChange={(e) => setchoosecolor(e.target.value)} />
-                                    <div className='mt-3 text-base text-gray-400' value={textcolor} onChange={(e)=>choosetextcolor(e.target.value)}>Choose Text Color</div>
-                                    <input required className='w-2/3 mt-3 rounded-lg bg-customdark h-[2rem]' type="color" value={textcolor} onChange={(e) => choosetextcolor(e.target.value)} />
-                                    <div className='text-base text-gray-400 mt-3' >Description</div>
-                                    <textarea value={descriptionac} onChange={(e)=> setdescriptionac(e.target.value)} placeholder="Enter your description here(Optional)" className='bg-customblue2 text-gray-200 p-2 mt-3 rounded-md w-5/6 h-[6rem]'></textarea>
-                                    <div className='flex mt-5 justify-between'>
+                                    {
+                                        selected === 'info' ? (
+                                            <>
+                                                <div className={`text-base text-gray-400 mt-3`}>{modifyupdatetask ? "Current Title" : "Title"}</div>
+                                                <input required value={acname} onChange={(e)=>setacname(e.target.value)} readOnly={modifyupdatetask ? true: false} type="text" className={`rounded-lg p-2 bg-customblue2 w-full mt-3 text-gray-200`} />
+                                                {modifyupdatetask && (
+                                                    <>
+                                                    <div className='text-base text-gray-400 mt-3'>Change Title (Optional)</div>
+                                                    <input type="text" className='rounded-lg p-2 bg-customblue2 w-full mt-3 text-gray-200' value={modifyacnametask} onChange={(e) => setmodifyacnametask(e.target.value)} />
+                                                    </>
+                                                )}
+                                                <div className="flex items-center gap-2 text-gray-400 mt-3 text-lg">
+                                                    <div>Time Start (optional):</div>
+                                                    <select
+                                                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black"
+                                                        value={time.hours}
+                                                        onChange={(e) => setTime((prevTime) => ({ ...prevTime, hours: e.target.value }))}
+                                                    >
+                                                        <option value="">Hour</option>
+                                                        {Array.from({ length: 24 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i.toString()}
+                                                        </option>
+                                                        ))}
+                                                    </select>
+                                                    <span>:</span>
+                                                    <select
+                                                        required={time.hours}
+                                                        disabled={!time.hours}
+                                                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black"
+                                                        value={time.minutes}
+                                                        onChange={(e) => setTime((prevTime) => ({ ...prevTime, minutes: e.target.value }))}
+                                                    >
+                                                        <option value="">Min</option>
+                                                        {Array.from({ length: 60 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i.toString().padStart(2, "0")}
+                                                        </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-gray-400 mt-3 text-lg">
+                                                <div>Time End (optional):</div>
+                                                    <select
+                                                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black"
+                                                        value={time2.hours}
+                                                        onChange={(e) => setTime2((prevTime) => ({ ...prevTime, hours: e.target.value }))}
+                                                    >
+                                                        <option value="">Hour</option>
+                                                        {Array.from({ length: 24 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i.toString()}
+                                                        </option>
+                                                        ))}
+                                                    </select>
+                                                    <span>:</span>
+                                                    <select
+                                                        required={time2.hours}
+                                                        disabled={!time2.hours}
+                                                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black"
+                                                        value={time2.hours?time2.minutes:""}
+                                                        onChange={(e) => setTime2((prevTime) => ({ ...prevTime, minutes: e.target.value }))}
+                                                    >
+                                                        <option value="">Min</option>
+                                                        {Array.from({ length: 60 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i.toString().padStart(2, "0")}
+                                                        </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className='flex items-center gap-2 text-gray-400 mt-3 text-lg'>
+                                                    <div className='text-red-500'>Deadline (required):</div>
+                                                    <div>
+                                                        <select
+                                                            required
+                                                            value={selectedMonth || ""} // Set to an empty string if selectedMonth is null or undefined
+                                                            onChange={handleMonthChange}
+                                                            className="border border-gray-300 rounded-md w-20 text-center"
+                                                        >
+                                                            <option value="">Month</option> {/* Use an empty string as the default value */}
+                                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                                                <option key={month} value={month}>
+                                                                    {month}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <span>/</span>
+                                                    <select
+                                                        required
+                                                        value={selectedDate || ""}
+                                                        onChange={handleDateChange}
+                                                        className="border border-gray-300 rounded-md w-16 text-center"
+                                                        disabled={!selectedMonth}
+                                                    >
+                                                        <option value="">Date</option>
+                                                        {selectedMonth &&
+                                                            Array.from({ length: getDaysInMonth(selectedMonth, new Date().getFullYear()) }, (_, i) => i + 1).map((day) => (
+                                                                <option key={day} value={day}>
+                                                                    {day}
+                                                                </option>
+                                                            ))}
+                                                    </select>
+                                                </div>
+                                                <div value={choosecolor} onChange={(e)=>setchoosecolor(e.target.value)} className='mt-3 text-base text-gray-400'>Choose Background Color</div>
+                                                <input required className='w-full mt-3 rounded-lg bg-customdark h-[2rem]' type="color" value={choosecolor} onChange={(e) => setchoosecolor(e.target.value)} />
+                                                <div className='mt-3 text-base text-gray-400' value={textcolor} onChange={(e)=>choosetextcolor(e.target.value)}>Choose Text Color</div>
+                                                <input required className='w-full mt-3 rounded-lg bg-customdark h-[2rem]' type="color" value={textcolor} onChange={(e) => choosetextcolor(e.target.value)} />
+                                                <div className='text-base text-gray-400 mt-3' >Description</div>
+                                                <textarea value={descriptionac} onChange={(e)=> setdescriptionac(e.target.value)} placeholder="Enter your description here(Optional)" className='bg-customblue2 text-gray-200 p-2 mt-3 rounded-md w-full h-[6rem]'></textarea>                                        
+                                            </>
+                                        ):(
+                                            <>
+                                                <div className='flex gap-2 items-center mt-3'>
+                                                <div className={`text-base text-gray-400`}>Notification</div>
+                                                <label className="relative inline-block h-7 w-[48px] cursor-pointer rounded-full bg-gray-500 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-[#1976D2]">
+                                                    <input
+                                                    type="checkbox"
+                                                    id="AcceptConditions"
+                                                    className="peer sr-only"
+                                                    checked={activenotify}
+                                                    onChange={(e) => setactivenotify(e.target.checked)}
+                                                    />
+                                                    <span className="absolute inset-y-0 start-0 m-1 size-5 rounded-full ring-[5px] ring-inset ring-white transition-all peer-checked:start-7 bg-gray-900 peer-checked:w-2 peer-checked:bg-white peer-checked:ring-transparent"></span>
+                                                </label>
+                                                </div>
+                                                <div className={`text-base text-gray-400 mt-3`}>Title(optional)</div>
+                                                <input type="text" className={`rounded-lg p-2 bg-customblue2 w-full mt-3 text-gray-200`} value={title} onChange={(e) => settitle(e.target.value)} placeholder={acname || modifyacnametask} />
+                                                <div className='mt-3 text-lg text-gray-400'>Notify time:</div>
+                                                <div className='flex items-center gap-2 text-gray-400 mt-3 text-lg'>
+                                                    <div>
+                                                        <select
+                                                            required ={activenotify}
+                                                            value={notifyMonth} // Set to an empty string if selectedMonth is null or undefined
+                                                            onChange={(e) => setnotifyMonth((e.target.value))}
+                                                            className="border border-gray-300 rounded-md w-20 text-center"
+                                                        >
+                                                            <option value="">Month</option> {/* Use an empty string as the default value */}
+                                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                                                <option key={month} value={month}>
+                                                                    {month}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <span>/</span>
+                                                    <select
+                                                        required = {activenotify}
+                                                        value={notifyDay}
+                                                        onChange={(e) => setnotifyDay((e.target.value))}
+                                                        className="border border-gray-300 rounded-md w-16 text-center"
+                                                        disabled={!notifyMonth}
+                                                    >
+                                                        <option value="">Date</option>
+                                                        {notifyMonth &&
+                                                            Array.from({ length: getDaysInMonth(notifyMonth, new Date().getFullYear()) }, (_, i) => i + 1).map((day) => (
+                                                                <option key={day} value={day}>
+                                                                    {day}
+                                                                </option>
+                                                            ))}
+                                                    </select>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-gray-400 mt-3 text-lg">
+                                                    {/* Hour select */}
+                                                    <select
+                                                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black"
+                                                        value={selectedHour}
+                                                        onChange={(e) => setSelectedHour(e.target.value)}
+                                                    >
+                                                        {Array.from({ length: 24 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i.toString()}
+                                                        </option>
+                                                        ))}
+                                                    </select>
+
+                                                    <div>:</div>
+
+                                                    {/* Minute select */}
+                                                    <select
+                                                        className="border border-gray-300 rounded-md px-2 py-1 bg-white text-black"
+                                                        value={selectedMinute}
+                                                        onChange={(e) => setSelectedMinute(e.target.value)}
+                                                    >
+                                                        {Array.from({ length: 60 }, (_, i) => (
+                                                        <option key={i} value={i}>
+                                                            {i.toString().padStart(2, "0")}
+                                                        </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <textarea placeholder="Enter your description here(Optional)" className='bg-customblue2 text-gray-200 p-2 mt-3 rounded-md w-full h-[6rem]' value={body ? body : descriptionac} onChange={(e) => setbody(e.target.value)}></textarea>
+                                            </>
+                                        )
+                                    }                                    
+                                </div>
+                                
+                                <div className='w-full flex flex-col h-fit'>
+                                    <div className='flex justify-between'>
                                         <button type='submit' className='px-[5rem] py-2 text-customblue border-[1px] border-customblue w-fit h-fit rounded-3xl hover:bg-customgray' disabled={updatingtask}>{modifyupdatetask ? "Update" : updatingtask ? "Updating..." : "Add"}</button>
                                         {modifyupdatetask && (
                                         <>
@@ -351,13 +499,13 @@ export const Mytask = () =>{
                                         </>
                                         )}
                                     </div>
-                                    {updatetaskresult && (<div className='text-custompurple mt-2'>{updatetaskresult}</div>)}
-                                </form>
-                            </div>
+                                </div>
+                                {updatetaskresult && (<div className='text-custompurple mt-2'>{updatetaskresult}</div>)}
+                            </form>
                         </div>
                     </>
                 )}
-                <div className={`${open ? "max-w-7xl ml-auto" : "max-w-7xl m-auto"} pt-[8rem]`}>
+                <div className={`${open ? "max-w-7xl ml-auto" : "max-w-7xl m-auto"} mt-20`}>
                     <div className='w-full bg-customdark rounded-3xl font-roboto text-gray-200 p-2 h-[37rem] overflow-auto'>
                         <div className='px-5 py-2 my-2 flex flex-wrap gap-2 items-center'>
                         <div className='p-2 rounded-xl bg-custompurple'>Today</div>
@@ -430,9 +578,9 @@ export const Mytask = () =>{
                                                                                     }}
                                                                                     disabled={data3.status == "Finished"}
                                                                                     />                                                       
-                                                                                    <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm flex items-center gap-1 ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{data3.timestart !== ':' && data3.timeend !== ':' &&`(${data3.timestart}-${data3.timeend})`}
+                                                                                    <div style={{backgroundColor: `${data3.color}`, color: `${data3.textcolor}`}} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm flex items-center gap-1 ${data3.important ? "font-bold underline-offset-4 underline" : ""} ${data3.status ? "line-through" : ""}`}>{data3.name}{`(${data3.timestart.split(':')[0]}${data3.timestart.split(':')[1] ? ':' + data3.timestart.split(':')[1].toString().padStart(2, '0') : ''} - ${data3.timeend.split(':')[0]}${data3.timeend.split(':')[1] ? ':' + data3.timeend.split(':')[1].toString().padStart(2, '0') : ''})`}
                                                                                         {data3.task == true && (
-                                                                                                                                                                                                                                                            <img src={images.deadline} className=' size-7' alt="" />
+                                                                                            <img src={images.deadline} className=' size-7' alt="" />
                                                                                         )}
                                                                                     </div>
                                                                                 </div>                                        
@@ -513,20 +661,31 @@ export const Mytask = () =>{
                                                                                                             setmodifyupdatetask(true);
                                                                                                             choosetextcolor(data2.textcolor);
                                                                                                             setdescriptionac(data2.description);
+                                                                                                            setTime({ minutes: data2.timestart.split(":")[1], hours: data2.timestart.split(":")[0] });
+                                                                                                            setTime2({ minutes: data2.timeend.split(":")[1], hours: data2.timeend.split(":")[0] });
                                                                                                             setSelectedMonth(data2.deadline.split("/")[0]);
+                                                                                                            console.log(`deadline: `,data2.deadline)
                                                                                                             setSelectedDate(data2.deadline.split("/")[1]);
                                                                                                             setPreviousDate(data2.deadline.split("/")[1]);
                                                                                                             setPreviousMonth(data2.deadline.split("/")[0]);
                                                                                                             setmytaskid(data2._id);
+                                                                                                            settitle(data2.notification.title);
+                                                                                                            setlastitle(data2.notification.title)
+                                                                                                            setbody(data2.notification.body);
+                                                                                                            setnotifyDay(data2.notification.notify_day)
+                                                                                                            setnotifyMonth(data2.notification.notify_month)
+                                                                                                            setSelectedHour(data2.notification.notify_hour);
+                                                                                                            setSelectedMinute(data2.notification.notify_minute);
+                                                                                                            setactivenotify(data2.notification.active)
                                                                                                         }}>
                                                                                                             {data2.name}
-                                                                                                            {((data2.timestart !== ':') && (data2.timeend !== ':')) && `(${data2.timestart}-${data2.timeend})`}
+                                                                                                            {`(${data2.timestart.split(':')[0]}${data2.timestart.split(':')[1] ? ':' + data2.timestart.split(':')[1].toString().padStart(2, '0') : ''} - ${data2.timeend.split(':')[0]}${data2.timeend.split(':')[1] ? ':' + data2.timeend.split(':')[1].toString().padStart(2, '0') : ''})`}
                                                                                                         </div>
                                                                                                         
                                                                                                     </div>
                                                                                                     <div className='ml-2 font-bold'>Deadline: {data2.deadline}</div>
+                                                                                                    <div className='ml-2 font-bold'>Notifcation:{data2.notification.notify_month ? `${data2.notification.notify_month}/${data2.notification.notify_day} at ${data2.notification.notify_hour}:${data2.notification.notify_minute.toString().padStart(2,'0')}`: " Empty"}</div>
                                                                                                     <div className='ml-2 text-red-700'>Countdown: ({calculateDaysLeft(data2.deadline)} days left)</div>
-                                                                                                    <div className='ml-2 text-green-700'>Progress: </div>
                                                                                                 </div>
                                                                                                 <div>
                                                                                                     <div style={{ backgroundColor: `${data2.color}`, color: `${data2.textcolor}` }} className='text-center m-2 p-1 rounded-xl'>{data2.description ? data2.description : "No description"}</div>
@@ -544,19 +703,19 @@ export const Mytask = () =>{
                                                                                         const daysLeftB = calculateDaysLeft(b.deadline);
                                                                                         return daysLeftA - daysLeftB; // Sort in ascending order
                                                                                     })
+                                                                                    //finished task
                                                                                     .map((data2) => (
-                                                                                        <React.Fragment key={data2._id}>
+                                                                                        <React.Fragment key={data2._id}> 
                                                                                             <div className='grid grid-cols-2'>
                                                                                                 <div className='border-r-[1px] pb-3'>
                                                                                                     <div className='flex items-center'>
                                                                                                         <div style={{ backgroundColor: `${data2.color}`, color: `${data2.textcolor}` }} className={`text-center m-2 p-1 rounded-xl md:text-base text-sm font-bold`}>
                                                                                                             {data2.name}
-                                                                                                            {((data2.timestart !== ':') && (data2.timeend !== ':')) && `(${data2.timestart}-${data2.timeend})`}
+                                                                                                            {`(${data2.timestart.split(':')[0]}${data2.timestart.split(':')[1] ? ':' + data2.timestart.split(':')[1].toString().padStart(2, '0') : ''} - ${data2.timeend.split(':')[0]}${data2.timeend.split(':')[1] ? ':' + data2.timeend.split(':')[1].toString().padStart(2, '0') : ''})`}
                                                                                                         </div>
                                                                                                     </div>
                                                                                                     <div className='ml-2 font-bold'>Deadline: {data2.deadline}</div>
                                                                                                     <div className='ml-2 text-red-700'>Date: {data2.date}</div>
-                                                                                                    <div className='ml-2 text-green-700'>Progress: </div>
                                                                                                     {
                                                                                                         deletefinishedtask == data2._id ? (
                                                                                                             <>
