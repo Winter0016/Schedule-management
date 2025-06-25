@@ -161,7 +161,7 @@ export const Schedule = () => {
       }
   
       // 📤 Send the Activity Data
-      const response = await fetch("https://localhost/add-daily", {
+      const response = await fetch("https://34.201.151.117/add-daily", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -206,7 +206,7 @@ export const Schedule = () => {
   const deleteactivity = async () => {
     try {
       setdeletingac(true);
-      const response = await fetch("https://localhost/delete-activity", {
+      const response = await fetch("https://34.201.151.117/delete-activity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -229,7 +229,7 @@ export const Schedule = () => {
 
   const getdays = async (req, res) => {
     try {
-      const response = await fetch("https://localhost/days", {
+      const response = await fetch("https://34.201.151.117/days", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

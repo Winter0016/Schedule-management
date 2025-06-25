@@ -16,7 +16,7 @@ export const Login = () => {
 
     const checkrefreshtoken = async () => {
         try {
-            const response = await fetch("https://localhost/auth/checkrefreshtoken", {
+            const response = await fetch("https://34.201.151.117/auth/checkrefreshtoken", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include", // 🔥 THIS IS IMPORTANT
@@ -40,7 +40,7 @@ export const Login = () => {
         e.preventDefault(); // Prevents the default form submission behavior
 
         try {
-            const response = await fetch('https://localhost/auth/login', {
+            const response = await fetch('https://34.201.151.117/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: username, pwd: password }), // Use username and password from state
@@ -70,7 +70,7 @@ export const Login = () => {
             if (!emailreset) {
                 throw new Error("Please enter the email for reset password!")
             }
-            const response = await fetch('https://localhost/reset-password', {
+            const response = await fetch('https://34.201.151.117/reset-password', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: emailreset }),
