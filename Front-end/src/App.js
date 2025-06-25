@@ -116,11 +116,12 @@ function App() {
         setlogin(true);
         setloggedusername(data.user);
         setprofilepicture(data.picture);
+        console.log(`checkrefreshtoken in appjs: ${data.user}`)
       }
     } catch (error) {
         console.log(error)
     } finally {
-        setIsLoading(false)
+      setIsLoading(false)
     }
   };
 
@@ -143,6 +144,7 @@ function App() {
 
     ///////
     // console.log(document.cookie.substring("jwt".length + 1));
+    console.log(`document cookie: ${document.cookie.substring("jwt".length + 1)}`)
     if (!document.cookie) {
       setIsLoading(false)
     } else {
