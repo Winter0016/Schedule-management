@@ -144,12 +144,7 @@ function App() {
 
     ///////
     // console.log(document.cookie.substring("jwt".length + 1));
-    console.log(`document cookie: ${document.cookie.substring("jwt".length + 1)}`)
-    if (!document.cookie) {
-      setIsLoading(false)
-    } else {
-      checkrefreshtoken(document.cookie.substring("jwt".length + 1));
-    }
+    checkrefreshtoken();
   }, []);
 
   const [updatetodayresult,setupdatetodayresult] = useState("");
