@@ -52,7 +52,7 @@ export const Login = () => {
                 throw new Error("Wrong password or username!");
             }
             setloginerror("");
-            await checkrefreshtoken(document.cookie.substring("jwt".length + 1));
+            await checkrefreshtoken();
         } catch (error) {
             // console.error('Error:', error);
             setlogin(false);
