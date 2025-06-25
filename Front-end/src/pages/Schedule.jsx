@@ -107,20 +107,36 @@ export const Schedule = () => {
       // 🔔 Handle Notification Subscription
       if (activenotify) {
         console.log("activenotify is true");
-        if(!selectedDay){
+
+        if (!selectedDay) {
           throw new Error("Notify day is required for notification!");
         }
-  
-        // 🔐 Check if notifications are blocked
-        console.log("notification permission: ",Notification.permission);
-        if (Notification.permission === 'denied') {
-          alert("You have blocked notifications. Please enable them in your browser settings.");
+      
+        const currentPermission = Notification.permission;
+        console.log("Notification permission:", currentPermission);
+      
+        if (currentPermission === "granted") {
+          console.log("Notification already granted.");
+          // You can proceed to schedule or show notification
+        } else if (currentPermission === "denied") {
+          alert("You have previously blocked notifications. Please enable them in your browser settings and refresh the page.");
           throw new Error("Notifications are blocked.");
-        }
-  
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          throw new Error("Website has blocked prompt, please enable it back!");
+        } else if (currentPermission === "default") {
+          alert("We'll now request notification permission. If the prompt doesn't appear, please enable notifications manually in your browser settings.");
+          
+          const permission = await Notification.requestPermission();
+      
+          if (permission === "granted") {
+            console.log("Permission granted.");
+            // Proceed to schedule/show notification
+          } else if (permission === "denied") {
+            alert("You denied notification permission. You can enable it in your browser settings.");
+            throw new Error("Notification permission denied.");
+          } else {
+            // In rare cases, some browsers suppress the prompt silently
+            alert("Notification request was not granted. Please enable it manually in your browser settings.");
+            throw new Error("Notification prompt blocked or ignored.");
+          }
         }
   
         try {
