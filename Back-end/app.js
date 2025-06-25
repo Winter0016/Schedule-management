@@ -888,28 +888,15 @@ app.post("/auth/login", async (req, res) => {
         res.json("Wrong password!");
     }
 })
-app.get("/auth/logout", async (req, res) => {
-    const cookies = req.cookies;
-    if (!cookies?.jwt) {
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
-        return res.json({ "message": "There is no cookie, but we cleared any existing cookie just in case." });
-    }
-
-    const refreshTokencheck = cookies.jwt;
-    const Founduser = await User.findOne({ refreshToken: refreshTokencheck }).exec();
-
-    if (!Founduser) {
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
-        return res.json({ "message": "There is no user logged in, but we still cleared the cookie!" });
-    }
-    console.log(`Found 1 user currently logged in : ${Founduser.username}`);
-    Founduser.refreshToken = " ";
-    const result = await Founduser.save();
-    console.log(result);
-
-    res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
-    return res.status(200).json({ "message": `User ${Founduser.username} has logged out` });
+app.post('/auth/logout', (req, res) => {
+    res.clearCookie("jwt", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // true on Netlify
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+    });
+    res.json({ message: "Logged out" });
 });
+
 
 app.post("/auth/change-profile-picture", async (req, res) => {
     const { pictureData, username } = req.body;
