@@ -28,7 +28,7 @@ export const Mytask = () =>{
     const updatecheckedarray = async() =>{
         try{
             setupdatingcheckedarray(true);
-            const response = await axios.post("http://localhost:3000/update-checkedarray", {
+            const response = await axios.post("http://34.201.151.117:3000/update-checkedarray", {
                 username: loggedusername,
                 plan:selectedOption,
                 checkedArray : checkedarray,
@@ -128,7 +128,7 @@ export const Mytask = () =>{
                     throw subError;
                 }
             }
-            const response = await axios.post("http://localhost:3000/update-task",{
+            const response = await axios.post("http://34.201.151.117:3000/update-task",{
                 username: loggedusername,
                 planname: selectedOption,
                 nameac: acname,
@@ -163,7 +163,7 @@ export const Mytask = () =>{
     const deletetask = async () => {
         try {
             setdeletingac(true);
-            const response = await fetch("http://localhost:3000/delete-task", {
+            const response = await fetch("http://34.201.151.117:3000/delete-task", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -219,7 +219,7 @@ export const Mytask = () =>{
     const deleteFinishedTask = async () => {
         try {
             setdeletefinishedtask(true);
-            const response = await axios.post("http://localhost:3000/deletefinishedtask",{
+            const response = await axios.post("http://34.201.151.117:3000/deletefinishedtask",{
                 username:loggedusername,
                 planname: selectedOption,
                 finishedtask_id: deletefinishedtask,

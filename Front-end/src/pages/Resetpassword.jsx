@@ -23,7 +23,7 @@ export const Resetpassword = () =>{
                     throw new Error("No token found!");
                 }
                 setloading(true);
-                const response = await fetch('http://localhost:3000/verify-token',{
+                const response = await fetch('http://34.201.151.117:3000/verify-token',{
                     method:"POST",
                     headers:{"Content-Type":"application/json"},
                     body: JSON.stringify({token : Token}),
@@ -53,7 +53,7 @@ export const Resetpassword = () =>{
                 throw new Error("Password is incorrect!")
             }
             setchanging(true);
-            const response = await fetch("http://localhost:3000/change-password",{
+            const response = await fetch("http://34.201.151.117:3000/change-password",{
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body: JSON.stringify({password:newPassword,username:user}),
