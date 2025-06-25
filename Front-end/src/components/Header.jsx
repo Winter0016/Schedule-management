@@ -170,10 +170,10 @@ export const Header = ()=>{
 
             mediaRecorderRef.current.onstop = () => {
                 const recordedBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                setAudioBlob(recordedBlob); // Store the recorded audio blob
-                console.log("Recorded audio Blob:", recordedBlob); // Log the Blob to the console
-                audioChunksRef.current = []; // Clear the chunks for the next recording
-                    // Send the recorded audio to the server
+                setAudioBlob(recordedBlob); 
+                console.log("Recorded audio Blob:", recordedBlob); 
+                audioChunksRef.current = []; 
+                    
                 sendAudioToServer(recordedBlob);
             };
 

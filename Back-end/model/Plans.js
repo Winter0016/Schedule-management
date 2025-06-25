@@ -216,10 +216,6 @@ const todaytask = new Schema({
         type: String,
         default: null,
       },
-      dateupdated: {
-        type: String,
-        default: null,
-      },
       task: {
         type: Boolean,
         default: false,
@@ -234,17 +230,9 @@ const PlanSchema = new Schema({
     type: String,
     required: true,
   },
-  progress: {
-    type: Number,
-    default: null,
-  },
-  time: {
-    type: Number,
-    default: null,
-  },
-  finished_task: [FinishedtaskSchema], // Array of Finished tasks
-  my_task: [IncommingtaskSchema], // Array of Incoming tasks
-  daily: [DailySchema], // Array of Daily activities
+  finished_task: [FinishedtaskSchema], 
+  my_task: [IncommingtaskSchema], 
+  daily: [DailySchema], 
   timebegin: {
     type: String,
     default: null,

@@ -874,9 +874,9 @@ app.post("/auth/login", async (req, res) => {
         const result = await Founduser.save();
         // console.log(result);
         res.cookie("jwt", refreshToken, {
-            httpOnly: false,           // So frontend JS can access it
-            secure: false,             // Needed because localhost is not HTTPS
-            sameSite: "Lax",           // "Lax" works well on localhost
+            httpOnly: true,           // So frontend JS can access it
+            secure: true,             // Needed because localhost is not HTTPS
+            sameSite: "None",           // "Lax" works well on localhost
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
           });              
         res.json("Login successfully");

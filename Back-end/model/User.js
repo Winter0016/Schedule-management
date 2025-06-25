@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     username: {
         type: String,
-        required: true // corrected "require" to "required"
+        required: true 
     },
     picture:{
         type:String,
@@ -12,19 +12,19 @@ const userSchema = new Schema({
     },
     email: {
         type: String,
-        required: true // corrected "require" to "required"
+        required: true 
     },
     verified: {
-        type: Boolean, // changed from String to Boolean
-        required: true, // corrected "require" to "required"
-        default: false // Default value is false for new users
+        type: Boolean, 
+        required: true, 
+        default: false 
     },
     password: {
         type: String,
-        required: true // corrected "require" to "required"
+        required: true 
     },
     refreshToken: {
-        type: String // This field is optional
+        type: String 
     }
 });
 
