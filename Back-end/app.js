@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const multer = require('multer');
 const path = require('path');
+const https = require('https');
 
 const bcrypt = require("bcrypt");
 const express = require('express');
@@ -1417,10 +1418,22 @@ app.get('/protected', verifyToken, protectedRoute);
 // Start the server
 const PORT = process.env.PORT || 3000;
 
-mongoose.connection.on('open', () => {
-    // console.log(`Connected to MongoDB`);
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+const options = {
+    key: fs.readFileSync('./cert/key.pem'),
+    cert: fs.readFileSync('./cert/cert.pem')
+  };
+  
+  app.get('/', (req, res) => {
+    res.send('Hello Secure World!');
+  });
+
+    mongoose.connection.on('open', () => {
+        // console.log(`Connected to MongoDB`);
+        // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        https.createServer(options, app).listen(3000, () => {
+            console.log('🚀 HTTPS server running at https://localhost:3000');
+        });
+    });
 
 
 // app.listen(PORT, () => {
