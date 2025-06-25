@@ -110,7 +110,7 @@ function App() {
         credentials: "include", // 🔥 THIS IS IMPORTANT
       });
 
-       data = await response.json();
+      const data = await response.json();
 
       if (data.user) {
         setlogin(true);
