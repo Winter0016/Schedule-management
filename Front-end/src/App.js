@@ -106,10 +106,11 @@ function App() {
       // console.log(`running checkrefreshtoken at app.js`);
       const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
         method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshtoken: myrefreshtoken })
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // 🔥 THIS IS IMPORTANT
       });
-      const data = await response.json();
+
+       data = await response.json();
 
       if (data.user) {
         setlogin(true);
@@ -117,9 +118,9 @@ function App() {
         setprofilepicture(data.picture);
       }
     } catch (error) {
-      console.log(error)
+        console.log(error)
     } finally {
-      setIsLoading(false)
+        setIsLoading(false)
     }
   };
 

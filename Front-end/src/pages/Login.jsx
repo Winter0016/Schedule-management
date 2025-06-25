@@ -14,26 +14,26 @@ export const Login = () => {
     const navigate = useNavigate(); // If you need to navigate after login
     const [loginerror, setloginerror] = useState("");
 
-    const checkrefreshtoken = async (myrefreshtoken) => {
+    const checkrefreshtoken = async () => {
         try {
-            console.log(`running checkrefreshtoken`);
             const response = await fetch("http://localhost:3000/auth/checkrefreshtoken", {
                 method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshtoken: myrefreshtoken })
+                headers: { "Content-Type": "application/json" },
+                credentials: "include", // 🔥 THIS IS IMPORTANT
             });
+    
             const data = await response.json();
-
+    
             if (data.user) {
                 setlogin(true);
                 setloggedusername(data.user);
                 setprofilepicture(data.picture);
-                navigate("/dashboard/plan")
+                navigate("/dashboard/plan");
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    };
+    };    
 
 
     const loginfunction = async (e) => {

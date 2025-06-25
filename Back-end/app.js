@@ -42,7 +42,7 @@ const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns")
 // app.use(cors());
 
 app.use(cors({
-    origin: ['http://localhost:3001', 'http://26.2.30.138:3001','http://localhost:3002'], // Array of allowed origins
+    origin: ['http://localhost:3001', 'http://26.2.30.138:3001','https://personal-task-mangement.netlify.app'], // Array of allowed origins
     credentials: true                // Allow cookies to be sent with requests
 }));
 
@@ -819,8 +819,11 @@ app.post("/add-daily", async (req, res) => {
 
 // function logout login and keep login when refresh
 app.post("/auth/checkrefreshtoken", async (req, res) => {
-    const { refreshtoken } = req.body;
+    const cookies = req.cookies;
+    const refreshtoken = cookies?.jwt;
+
     if (!refreshtoken) {
+        console.log(`refreshtoken needed!`)
         return res.status(400).json({ message: "Refresh token required" });
     }
 
@@ -828,7 +831,7 @@ app.post("/auth/checkrefreshtoken", async (req, res) => {
         const decoded = jwt.verify(refreshtoken, process.env.REFRESH_TOKEN_SECRET);
         const username = decoded.Userinfo.username;
 
-        const Founduser = await User.findOne({ username: username }).exec();
+        const Founduser = await User.findOne({ username }).exec();
         if (!Founduser) {
             return res.status(401).json({ message: "No user found" });
         }
@@ -841,6 +844,7 @@ app.post("/auth/checkrefreshtoken", async (req, res) => {
         return res.status(403).json({ message: "The token is not matched!" });
     }
 });
+
 
 
 app.post("/auth/login", async (req, res) => {
