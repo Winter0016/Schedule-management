@@ -880,8 +880,8 @@ app.post("/auth/login", async (req, res) => {
         // console.log(result);
         res.cookie("jwt", refreshToken, {
             httpOnly: true,           // So frontend JS can access it
-            secure: true,             // Needed because localhost is not HTTPS // change to false if test on local
-            sameSite: "None",           // "Lax" works well on localhost
+            secure: false,             // Needed because localhost is not HTTPS // change to false if test on local
+            sameSite: "lax",           // "Lax" works well on localhost
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
           });              
         res.json("Login successfully");
@@ -894,8 +894,8 @@ app.post('/auth/logout', (req, res) => {
 
     res.clearCookie("jwt", {
         httpOnly: true,
-        secure: true,               // ✅ Must match how it was set //change to false if test on local
-        sameSite: "None",           // ✅ Must match how it was set
+        secure: false,               // ✅ Must match how it was set //change to false if test on local
+        sameSite: "lax",           // ✅ Must match how it was set
     });
 
     return res.status(200).json({ message: "Logged out" });

@@ -19,7 +19,7 @@ export const Register = () => {
     const checkusername = async (USERNAME) => {
         // console.log(`Checking user ${USERNAME}`);
         try {
-            const response = await fetch('https://34.201.151.117/auth/check-username', {
+            const response = await fetch('http://localhost:3000/auth/check-username', {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: USERNAME }),
@@ -41,7 +41,7 @@ export const Register = () => {
     const checkemail = async (EMAIL) => {
         // console.log(`Checking user ${USERNAME}`);
         try {
-            const response = await fetch('https://34.201.151.117/auth/check-email', {
+            const response = await fetch('http://localhost:3000/auth/check-email', {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: EMAIL }),
@@ -79,7 +79,7 @@ export const Register = () => {
                 throw new Error("Please fill everything from the form!");
             }
             setloading(true);
-            const response = await fetch('https://34.201.151.117/auth/register', {
+            const response = await fetch('http://localhost:3000/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: username, password: password, email: email }), // Use username and password from state

@@ -25,7 +25,7 @@ export const Chat = () => {
             
             try {
                 setaithinking(true);
-                const response = await axios.post('https://34.201.151.117/ask', {
+                const response = await axios.post('http://localhost:3000/ask', {
                     username: loggedusername,
                     planname: selectedOption,
                     question: text,
@@ -60,7 +60,7 @@ export const Chat = () => {
         formData.append('audio', audioBlob, 'received.wav'); // Append the audio blob to the form data
         setloadingspeechtotext(true);
         try {
-            const response = await fetch('https://34.201.151.117/voice-receive', {
+            const response = await fetch('http://localhost:3000/voice-receive', {
                 method: 'POST',
                 body: formData,
             });
@@ -148,7 +148,7 @@ export const Chat = () => {
 
         try {
           // Send the updated time fields in the request
-          const response = await fetch("https://34.201.151.117/add-daily", {
+          const response = await fetch("http://localhost:3000/add-daily", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -185,7 +185,7 @@ export const Chat = () => {
             timeend = ":"
         }
         try {
-            const response = await axios.post("https://34.201.151.117/update-task",{
+            const response = await axios.post("http://localhost:3000/update-task",{
                 username: loggedusername,
                 planname: selectedOption,
                 nameac: name,
