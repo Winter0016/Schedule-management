@@ -1429,10 +1429,10 @@ const options = {
 
     mongoose.connection.on('open', () => {
         // console.log(`Connected to MongoDB`);
-        // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-        https.createServer(options, app).listen(3000, () => {
-            console.log('🚀 HTTPS server running at https://localhost:3000');
-        });
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        // https.createServer(options, app).listen(3000, () => {
+        //     console.log('🚀 HTTPS server running at https://localhost:3000');
+        // });
     });
 
 

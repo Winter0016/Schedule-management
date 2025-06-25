@@ -104,7 +104,7 @@ function App() {
   const checkrefreshtoken = async (myrefreshtoken) => {
     try {
       // console.log(`running checkrefreshtoken at app.js`);
-      const response = await fetch("https://34.201.151.117:3000//auth/checkrefreshtoken", {
+      const response = await fetch("https://localhost/auth/checkrefreshtoken", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // 🔥 THIS IS IMPORTANT
@@ -182,7 +182,7 @@ function App() {
             });
           }
         });
-        const response = await axios.post('https://34.201.151.117:3000//update-todaytask', {
+        const response = await axios.post('https://localhost/update-todaytask', {
           username: loggedusername,
           plan: selectedOption,
           date: `${years}-${months}-${date}`,
@@ -239,7 +239,7 @@ function App() {
   };
   const getplan = async (req, res) => {
     try {
-      const response = await fetch("https://34.201.151.117:3000//plan", {
+      const response = await fetch("https://localhost/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: loggedusername }),
@@ -319,7 +319,7 @@ async function subscribe(username,title,body,time) {
     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
   });
 
-  await axios.post('https://34.201.151.117:3000//subscribe', subscription,username,title,body,time);
+  await axios.post('https://localhost/subscribe', subscription,username,title,body,time);
   console.log('Push subscription sent to server:', subscription);
 }
 
