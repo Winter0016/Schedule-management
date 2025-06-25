@@ -122,7 +122,7 @@ export const Schedule = () => {
           alert("You have previously blocked notifications. Please enable them in your browser settings and refresh the page.");
           throw new Error("Notifications are blocked.");
         } else if (currentPermission === "default") {
-          alert("We'll now request notification permission. If the prompt doesn't appear, please enable notifications manually in your browser settings.");
+          alert("We'll now request notification permission. If the prompt doesn't appear, please enable notifications manually in your browser settings and refresh the page.");
           
           const permission = await Notification.requestPermission();
       
@@ -134,7 +134,7 @@ export const Schedule = () => {
             throw new Error("Notification permission denied.");
           } else {
             // In rare cases, some browsers suppress the prompt silently
-            alert("Notification request was not granted. Please enable it manually in your browser settings.");
+            alert("Notification request was not granted. Please enable it manually in your browser settings and refresh the page.");
             throw new Error("Notification prompt blocked or ignored.");
           }
         }
