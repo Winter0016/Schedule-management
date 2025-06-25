@@ -126,24 +126,6 @@ function App() {
   };
 
   useEffect(() => {
-
-    //in canse document cookie store more than one :
-
-    // example cookie data : const sampleCookieString = "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw0; key=some_value; another_cookie=test";
-
-    // const cookieParts = document.cookie.split('; ');
-    // for (const part of cookieParts) {
-    //   const [key, value] = part.split('=');
-    //   if (key === 'jwt') {
-    //     console.log(`jwt = ${value}`);
-    //   }
-    //   if (key === 'key') {
-    //     console.log(`key = ${value}`);
-    //   }
-    // }
-
-    ///////
-    // console.log(document.cookie.substring("jwt".length + 1));
     checkrefreshtoken();
   }, []);
 

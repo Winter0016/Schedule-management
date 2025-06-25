@@ -19,11 +19,10 @@ export const Sidebar = () => {
       setloggedusername("");
       setprofilepicture("");
       localStorage.clear();
-
-      navigate("/");
-      window.location.reload(); // To reset UI
     } catch (error) {
       console.error("Logout failed:", error);
+    }finally{
+      navigate("/")
     }
   };
 

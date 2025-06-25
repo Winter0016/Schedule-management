@@ -889,13 +889,17 @@ app.post("/auth/login", async (req, res) => {
     }
 })
 app.post('/auth/logout', (req, res) => {
+    console.log("logging out");
+
     res.clearCookie("jwt", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // true on Netlify
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+        secure: true,               // ✅ Must match how it was set
+        sameSite: "None",           // ✅ Must match how it was set
     });
-    res.json({ message: "Logged out" });
+
+    return res.status(200).json({ message: "Logged out" });
 });
+
 
 
 app.post("/auth/change-profile-picture", async (req, res) => {
