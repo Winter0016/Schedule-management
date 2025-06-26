@@ -43,7 +43,7 @@ const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns")
 // app.use(cors());
 
 app.use(cors({
-    origin: ['http://localhost:3001', 'http://26.2.30.138:3001','https://personal-task-mangement.netlify.app'], // Array of allowed origins
+    origin: '*',
     credentials: true                // Allow cookies to be sent with requests
 }));
 
