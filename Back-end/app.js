@@ -43,7 +43,7 @@ const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns")
 // app.use(cors());
 
 app.use(cors({
-    origin: '*',
+    origin: 'http://100.27.190.222:3001',
     credentials: true                // Allow cookies to be sent with requests
 }));
 
