@@ -44,7 +44,7 @@ export const Plan = () => {
       if (!newplan) {
         throw new Error("Please provide a name for your plan!");
       }
-      const response = await fetch("http://13.217.195.4:3000/add-plan", {
+      const response = await fetch("http://100.27.190.222:3000/add-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: loggedusername, name: newplan, timebegin: `${years}-${months + 1}-${date}` })
@@ -68,7 +68,7 @@ export const Plan = () => {
   const deleteplan = async (req, res) => {
     try {
       setdeleteing(true);
-      const response = await fetch("http://13.217.195.4:3000/delete-plan", {
+      const response = await fetch("http://100.27.190.222:3000/delete-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: loggedusername, planId: Delete })

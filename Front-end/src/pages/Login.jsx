@@ -16,7 +16,7 @@ export const Login = () => {
 
     const checkrefreshtoken = async () => {
         try {
-            const response = await fetch("http://13.217.195.4:3000/auth/checkrefreshtoken", {
+            const response = await fetch("http://100.27.190.222:3000/auth/checkrefreshtoken", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include", // 🔥 THIS IS IMPORTANT
@@ -40,7 +40,7 @@ export const Login = () => {
         e.preventDefault(); // Prevents the default form submission behavior
 
         try {
-            const response = await fetch('http://13.217.195.4:3000/auth/login', {
+            const response = await fetch('http://100.27.190.222:3000/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: username, pwd: password }), // Use username and password from state
@@ -70,7 +70,7 @@ export const Login = () => {
             if (!emailreset) {
                 throw new Error("Please enter the email for reset password!")
             }
-            const response = await fetch('http://13.217.195.4:3000/reset-password', {
+            const response = await fetch('http://100.27.190.222:3000/reset-password', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: emailreset }),
