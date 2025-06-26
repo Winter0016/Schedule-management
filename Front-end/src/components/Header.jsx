@@ -39,7 +39,7 @@ export const Header = ()=>{
         const formData = new FormData();
         formData.append('audio', audioBlob, 'received.wav'); // Append the audio blob to the form data
         try {
-            const response = await fetch('http://localhost:3000/voice-receive', {
+            const response = await fetch('http://13.217.195.4:3000/voice-receive', {
                 method: 'POST',
                 body: formData,
             });
@@ -72,7 +72,7 @@ export const Header = ()=>{
     
             try {
               // Send the updated time fields in the request
-              const response = await fetch("http://localhost:3000/add-daily", {
+              const response = await fetch("http://13.217.195.4:3000/add-daily", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -106,7 +106,7 @@ export const Header = ()=>{
                 timeend = ":"
             }
             try {
-                const response = await axios.post("http://localhost:3000/update-task",{
+                const response = await axios.post("http://13.217.195.4:3000/update-task",{
                     username: loggedusername,
                     planname: selectedOption,
                     nameac: name,
@@ -131,7 +131,7 @@ export const Header = ()=>{
             
             try {
                 setaithinking(true);
-                const response = await axios.post('http://localhost:3000/ask', {
+                const response = await axios.post('http://13.217.195.4:3000/ask', {
                     username: loggedusername,
                     planname: selectedOption,
                     question: text,

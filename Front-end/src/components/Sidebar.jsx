@@ -9,7 +9,7 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:3000/auth/logout", {
+      await fetch("http://13.217.195.4:3000/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -36,7 +36,7 @@ export const Sidebar = () => {
       setprofilepicture(base64Image);
 
       try {
-        await fetch("http://localhost:3000/auth/change-profile-picture", {
+        await fetch("http://13.217.195.4:3000/auth/change-profile-picture", {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
