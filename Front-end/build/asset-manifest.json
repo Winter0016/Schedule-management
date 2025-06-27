@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.35f371b0.css",
-    "main.js": "/static/js/main.78309857.js",
+    "main.js": "/static/js/main.38180cba.js",
     "static/media/island.png": "/static/media/island.1ab73cfdc7a6eabbc4a0.png",
     "static/media/Discipliner.png": "/static/media/Discipliner.1ef8802c74ec70d190ca.png",
     "static/media/motivationer.png": "/static/media/motivationer.6d226825a2e58eae0c66.png",
@@ -11,10 +11,10 @@
     "static/media/arrow-down.png": "/static/media/arrow-down.50c47b64acb3edfcd34d.png",
     "index.html": "/index.html",
     "main.35f371b0.css.map": "/static/css/main.35f371b0.css.map",
-    "main.78309857.js.map": "/static/js/main.78309857.js.map"
+    "main.38180cba.js.map": "/static/js/main.38180cba.js.map"
   },
   "entrypoints": [
     "static/css/main.35f371b0.css",
-    "static/js/main.78309857.js"
+    "static/js/main.38180cba.js"
   ]
 }

@@ -39,7 +39,7 @@ export const Header = ()=>{
         const formData = new FormData();
         formData.append('audio', audioBlob, 'received.wav'); // Append the audio blob to the form data
         try {
-            const response = await fetch('http://100.27.190.222:3000/voice-receive', {
+            const response = await fetch('http://localhost:3000/voice-receive', {
                 method: 'POST',
                 body: formData,
             });
@@ -72,7 +72,7 @@ export const Header = ()=>{
     
             try {
               // Send the updated time fields in the request
-              const response = await fetch("http://100.27.190.222:3000/add-daily", {
+              const response = await fetch("http://localhost:3000/add-daily", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -106,7 +106,7 @@ export const Header = ()=>{
                 timeend = ":"
             }
             try {
-                const response = await axios.post("http://100.27.190.222:3000/update-task",{
+                const response = await axios.post("http://localhost:3000/update-task",{
                     username: loggedusername,
                     planname: selectedOption,
                     nameac: name,
@@ -131,7 +131,7 @@ export const Header = ()=>{
             
             try {
                 setaithinking(true);
-                const response = await axios.post('http://100.27.190.222:3000/ask', {
+                const response = await axios.post('http://localhost:3000/ask', {
                     username: loggedusername,
                     planname: selectedOption,
                     question: text,
@@ -206,7 +206,7 @@ export const Header = ()=>{
                     {
                         login ? (
                             <>
-                                <div className="cursor-pointer mt-2  bg-gray-800 rounded-full p-2 w-fit" onClick={toggleMic}>
+                                <div className={`${selectedOption ? "cursor-pointer" : ""} mt-2  bg-gray-800 rounded-full p-2 w-fit`} onClick={selectedOption ? toggleMic:""}>
                                     {turnonmic ? (
                                         /* Mic Off SVG */
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-12 text-white">

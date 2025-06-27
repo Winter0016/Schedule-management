@@ -43,7 +43,7 @@ const { format, addDays, addWeeks, subWeeks, startOfWeek } = require("date-fns")
 // app.use(cors());
 
 app.use(cors({
-    origin: 'http://100.27.190.222:3001',
+    origin: ['http://100.27.190.222:3001', 'http://localhost:3001'],
     credentials: true                // Allow cookies to be sent with requests
 }));
 
@@ -274,6 +274,7 @@ app.post("/change-password", async (req, res) => {
 // app schedule function
 app.post("/add-plan", async (req, res) => {
     const { username, name, timebegin } = req.body;
+    console.log(`timebegin: ${timebegin}`)
     try {
         const userplanexist = await UserPlan.findOne({ username: username }).exec();
         if (userplanexist) {
@@ -1246,14 +1247,21 @@ const vapidKeys = {
 
 function getCurrentNotifyTime() {
     const now = new Date();
-    const day = now.getDay() === 0 ? 7 : now.getDay(); // Sunday is 0, convert to 7
-    const hours = now.getHours().toString()
-    const minutes = now.getMinutes().toString()
-    const date = now.getDate();
-    const month = now.getMonth();
+  
+    // Convert to UTC+7
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const vietnamTime = new Date(utc + 7 * 60 * 60000); // UTC+7
+  
+    const day = vietnamTime.getDay() === 0 ? 7 : vietnamTime.getDay(); // Sunday = 0 → 7
+    const hours = vietnamTime.getHours().toString().padStart(2, '0');
+    const minutes = vietnamTime.getMinutes().toString().padStart(2, '0');
+    const date = vietnamTime.getDate();
+    const month = vietnamTime.getMonth();
+  
     const time = `${hours}:${minutes}`;
-    return { day: day.toString(), time,date,month };
-  }
+    return { day: day.toString(), time, date, month };
+}
+  
   
   
   setInterval(async () => {

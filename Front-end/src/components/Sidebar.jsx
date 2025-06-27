@@ -9,7 +9,7 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://100.27.190.222:3000/auth/logout", {
+      await fetch("http://localhost:3000/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -36,7 +36,7 @@ export const Sidebar = () => {
       setprofilepicture(base64Image);
 
       try {
-        await fetch("http://100.27.190.222:3000/auth/change-profile-picture", {
+        await fetch("http://localhost:3000/auth/change-profile-picture", {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -70,7 +70,7 @@ export const Sidebar = () => {
         <div className='border-b-[1px] border-gray-700 pb-10 pt-14 flex flex-col w-full gap-1 items-center'>
           <label className="cursor-pointer">
             <img
-              src={profilepicture}
+              src={profilepicture || images.profile }
               className='size-[5rem] rounded-full object-cover'
               alt="Profile"
             />
